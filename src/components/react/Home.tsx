@@ -129,6 +129,7 @@ export function Home({ recentProjects }: HomeProps) {
                 오랜 경력과 노하우로<br />신뢰를 쌓아갑니다
               </h2>
               <p className="text-gray-600 leading-relaxed mb-6">
+                경기 용인 지역을 중심으로 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 전문으로 하는 민건축입니다.<br />
                 15년 이상의 주거 및 상업 건축 경험을 바탕으로, 
                 최상의 시공과 디테일에 대한 관심으로 고객의 비전을 실현합니다.
               </p>
