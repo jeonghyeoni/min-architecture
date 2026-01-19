@@ -14,29 +14,39 @@ const DATABASE_ID = import.meta.env.NOTION_DATABASE_ID;
 
 // 이미지를 저장할 폴더 위치 (public/notion-images)
 const IMAGE_DIR = path.join(process.cwd(), "public", "notion-images");
+// 배포용 폴더 위치 (dist/notion-images) - Vercel을 위한 추가 경로
+const BUILD_DIR = path.join(process.cwd(), "dist", "notion-images");
 
 // 이미지를 다운로드하는 함수
 async function downloadImage(url, id) {
-  // 폴더가 없으면 생성
+  // 1. public 폴더 생성
   await fs.ensureDir(IMAGE_DIR);
 
   const extension = url.split("?")[0].split(".").pop() || "jpg";
   const filename = `${id}.${extension}`;
   const filepath = path.join(IMAGE_DIR, filename);
   
-  // 이미 파일이 있으면 다운로드 건너뛰기 (빌드 속도 최적화)
-  // 만약 이미지를 수정했다면 public/notion-images 폴더를 지우고 다시 빌드하면 됨
-  if (fs.existsSync(filepath)) {
-    return `/notion-images/${filename}`;
-  }
+  // 결과로 사용할 웹 경로
+  const webPath = `/notion-images/${filename}`;
 
   try {
-    await download.image({
-      url: url,
-      dest: filepath,
-    });
-    console.log(`이미지 다운로드 완료: ${filename}`);
-    return `/notion-images/${filename}`;
+    // 2. 이미지가 없으면 다운로드 (public 폴더에)
+    if (!fs.existsSync(filepath)) {
+      await download.image({
+        url: url,
+        dest: filepath,
+      });
+      console.log(`이미지 다운로드 완료: ${filename}`);
+    }
+
+    // 3. [중요] 배포 환경(PROD)이라면 dist 폴더에도 강제로 복사!
+    if (import.meta.env.PROD) {
+      await fs.ensureDir(BUILD_DIR); // dist/notion-images 폴더 만들기
+      const buildPath = path.join(BUILD_DIR, filename);
+      await fs.copy(filepath, buildPath); // 파일 복사하기
+    }
+
+    return webPath;
   } catch (e) {
     console.error(`이미지 다운로드 실패 (${id}):`, e);
     return null;
