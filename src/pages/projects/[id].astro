@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ProjectDetail } from "../../components/react/ProjectDetail";
+import { getProjects } from "../../lib/notion";
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+
+  return projects.map((project: any, index: number) => ({
+    params: { id: project.id.toString() },
+    props: { 
+      project,
+      prevProject: index > 0 ? projects[index - 1] : null,
+      nextProject: index < projects.length - 1 ? projects[index + 1] : null
+    },
+  }));
+}
+
+const { project, prevProject, nextProject } = Astro.props;
+---
+
+<BaseLayout title={`${project.title} | 민건축`}>
+  <ProjectDetail 
+    client:load 
+    project={project} 
+    prevProject={prevProject} 
+    nextProject={nextProject} 
+  />
+</BaseLayout>

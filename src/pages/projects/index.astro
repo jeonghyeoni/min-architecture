@@ -1,0 +1,11 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ProjectsList } from "../../components/react/ProjectsList";
+import { getProjects } from "../../lib/notion"; // Notion 함수
+
+const projects = await getProjects(); // 데이터 가져오기
+---
+
+<BaseLayout title="프로젝트 | 민건축">
+  <ProjectsList client:load projects={projects} />
+</BaseLayout>
