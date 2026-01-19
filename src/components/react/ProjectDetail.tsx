@@ -156,11 +156,11 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
               />
 
               {/* Labels */}
-              <div className="absolute top-6 left-6 bg-black/50 text-white px-4 py-2 text-sm backdrop-blur-sm">
-                BEFORE
-              </div>
               <div className="absolute top-6 right-6 bg-black/50 text-white px-4 py-2 text-sm backdrop-blur-sm">
                 AFTER
+              </div>
+              <div className="absolute top-6 left-6 bg-black/50 text-white px-4 py-2 text-sm backdrop-blur-sm">
+                BEFORE
               </div>
             </div>
           </div>
