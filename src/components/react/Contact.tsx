@@ -31,9 +31,11 @@ export function Contact() {
                   경기 용인 지역을 중심으로 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 
                   전문으로 진행하고 있습니다.
                 </p>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed mb-6">
                   오랜 경력과 노하우를 바탕으로 합리적인 비용과 
-                  안전하고 효율적인 시공을 약속드립니다.<br />
+                  안전하고 효율적인 시공을 약속드립니다.
+                </p>
+                <p className="text-gray-600 leading-relaxed">
                   고객 만족을 최우선으로 하며, 작은 일 하나에도 최선을 다하겠습니다.
                 </p>
               </div>

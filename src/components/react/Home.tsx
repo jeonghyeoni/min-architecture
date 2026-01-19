@@ -11,10 +11,10 @@ interface HomeProps {
 export function Home({ recentProjects }: HomeProps) {
   
   const processSteps = [
-    { number: "01", title: "상담", description: "고객님의 상황과 예산을 충분히 듣고 최적의 방안을 찾습니다." },
-    { number: "02", title: "현장 확인", description: "직접 방문하여 꼼꼼히 확인하고 정확한 견적을 산출합니다." },
-    { number: "03", title: "시공", description: "안전하고 효율적인 시공으로 고객 만족을 최우선합니다." },
-    { number: "04", title: "완공", description: "마지막까지 책임지고 깨끗하게 마무리합니다." }
+    { number: "01", title: "상담", description: "고객님의 상황과 예산을 충분히 듣고\n최적의 방안을 찾습니다." },
+    { number: "02", title: "현장 확인", description: "직접 방문하여 꼼꼼히 확인하고\n정확한 견적을 산출합니다." },
+    { number: "03", title: "시공", description: "안전하고 효율적인 시공으로\n고객 만족을 최우선합니다." },
+    { number: "04", title: "완공", description: "마지막까지 책임지고\n깨끗하게 마무리합니다." }
   ];
 
   // recentProjects가 아직 로드되지 않았거나 없을 경우를 대비해 안전장치 추가
@@ -110,7 +110,7 @@ export function Home({ recentProjects }: HomeProps) {
                   {step.number}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                <p className="text-gray-600 leading-relaxed text-[15px]">
+                <p className="text-gray-600 leading-relaxed text-[15px] whitespace-pre-line">
                   {step.description}
                 </p>
               </div>
@@ -130,11 +130,13 @@ export function Home({ recentProjects }: HomeProps) {
               </h2>
               <p className="text-gray-600 leading-relaxed mb-6">
                 경기 용인 지역을 중심으로 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 전문으로 하는 민건축입니다.<br />
+              </p>
+              <p className="text-gray-600 leading-relaxed mb-6">
                 15년 이상의 주거 및 상업 건축 경험을 바탕으로, 
                 최상의 시공과 디테일에 대한 관심으로 고객의 비전을 실현합니다.
               </p>
               <p className="text-gray-600 leading-relaxed mb-8">
-                합리적인 비용으로 안전하고 효율적인 시공을 진행하며, 
+                합리적인 비용으로 안전하고 효율적인 시공을 진행하며,<br />
                 무엇보다 고객 만족을 최우선으로 생각합니다.<br />작은 일 하나에도 최선을 다하겠습니다.
               </p>
               <a 
