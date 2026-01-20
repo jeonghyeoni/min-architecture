@@ -40,7 +40,7 @@ export function Home({ recentProjects }: HomeProps) {
               작은 일 하나에도<br />최선을 다합니다
             </h1>
             <p className="text-lg md:text-xl mb-12 text-white/90 leading-relaxed">
-              용인시 처인구 전지역 주택 건축, 인테리어, 설비, 증개축, 대수리, 부분수리, 방수 전문
+              용인시 처인구 주택 건축, 인테리어, 설비, 증개축, 대수리, 부분수리, 방수 전문
             </p>
             <a 
               href="/projects"
