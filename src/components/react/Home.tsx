@@ -149,7 +149,7 @@ export function Home({ recentProjects }: HomeProps) {
             </div>
             <div className="aspect-[4/5] bg-gray-100">
               <img 
-                src="https://images.unsplash.com/photo-1693661391267-ad955aeeb564?q=80&w=1080"
+                src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20241104_3%2F17306895281458kUco_JPEG%2F%25B9%25CE%25B0%25C7%25C3%25E02.jpg"
                 alt="Construction workspace"
                 className="w-full h-full object-cover"
               />
