@@ -10,7 +10,7 @@ export function Contact() {
             함께 고민하겠습니다
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-            주택 건축부터 증개축, 대수리, 작은 부분수리까지<br />
+            주택 건축부터 인테리어, 증개축, 대수리, 작은 부분수리까지<br />
             편하게 연락주시면 친절히 상담해드립니다.
           </p>
         </div>
@@ -28,7 +28,7 @@ export function Contact() {
                   상담 받아보세요
                 </h2>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  경기 용인 지역을 중심으로 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 
+                  용인시 처인구에서 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 
                   전문으로 진행하고 있습니다.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-6">
@@ -81,9 +81,8 @@ export function Contact() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1 font-medium">지역</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      경기도 용인시
+                      경기도 용인시 처인구
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">수지·기흥·처인구 전 지역</p>
                   </div>
                 </div>
               </div>
@@ -229,7 +228,7 @@ export function Contact() {
                 어떤 작업을 하시나요?
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                주택 건축, 설비, 증개축, 대수리, 부분수리 등 
+                주택 건축, 인테리어, 설비, 증개축, 대수리, 부분수리, 방수 등 
                 주거 공간과 관련된 모든 작업을 진행합니다. 
                 큰 공사부터 작은 수리까지 고객님의 상황에 맞춰 최선을 다합니다.
               </p>
@@ -258,8 +257,7 @@ export function Contact() {
                 어느 지역에서 작업하시나요?
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                경기도 용인시를 중심으로 작업하고 있습니다. 
-                수지구, 기흥구, 처인구 전 지역 방문 가능하며, 인접 지역도 상담 가능합니다.
+                경기도 용인시 처인구 전 지역 방문 가능합니다.
               </p>
             </div>
           </div>
