@@ -88,21 +88,21 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
       {/* Image Gallery */}
       {galleryImages.length > 0 && (
         <section className="px-6 lg:px-12 mb-32">
-          <div className="max-w-7xl mx-auto">
-            <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">갤러리</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {galleryImages.map((image, index) => (
-                <div key={index} className="aspect-[4/3] bg-gray-100">
-                  <img 
-                    src={image}
-                    alt={`${project.title} 디테일 ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="max-w-7xl mx-auto">
+          <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">갤러리</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {galleryImages.slice(1).map((image, index) => (
+              <div key={index} className="bg-gray-100">
+                <img 
+                  src={image}
+                  alt={`${project.title} 디테일 ${index + 1}`}
+                  className="w-full h-auto"
+                />
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
       )}
 
       {/* Before and After Section - 데이터가 있을 때만 표시 */}
