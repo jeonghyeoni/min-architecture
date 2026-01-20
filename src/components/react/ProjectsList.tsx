@@ -19,7 +19,7 @@ interface ProjectsListProps {
 }
 
 // 1. 카테고리 타입 변경
-type Category = 'All' | 'Extension' | 'NewBuild' | 'Repair';
+type Category = 'All' | 'Extension' | 'NewBuild' | 'Repair' | 'Interior' | 'Waterproofing';
 
 export function ProjectsList({ projects }: ProjectsListProps) {
   const [activeFilter, setActiveFilter] = useState<Category>('All');
@@ -52,9 +52,11 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   // 2. 필터 버튼 목록 변경
   const categories: { key: Category; label: string }[] = [
     { key: 'All', label: '전체' },
-    { key: 'Extension', label: '증개축/대수리' }, // Remodeling -> Extension
-    { key: 'NewBuild', label: '주택건축' },       // House -> NewBuild
-    { key: 'Repair', label: '설비/부분수리' }     // Commercial -> Repair
+    { key: 'NewBuild', label: '주택건축' }, 
+    { key: 'Extension', label: '증개축/대수리' }, 
+    { key: 'Interior', label: '인테리어' }, 
+    { key: 'Waterproofing', label: '방수' }, 
+    { key: 'Repair', label: '설비/부분수리' }  
   ];
 
   return (

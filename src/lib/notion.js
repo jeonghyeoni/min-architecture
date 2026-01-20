@@ -58,7 +58,9 @@ const TYPE_MAP = {
   "대수리": "Extension",  
   "주택건축": "NewBuild",
   "설비": "Repair",
-  "부분수리": "Repair" 
+  "부분수리": "Repair", 
+  "인테리어": "Interior",
+  "방수": "Waterproofing"
 };
 
 export async function getProjects() {
