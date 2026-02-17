@@ -72,18 +72,21 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
       </section>
 
       {/* Project Description */}
-      <section className="px-6 lg:px-12 mb-32">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-sm tracking-wider text-gray-500 mb-6 font-medium">프로젝트 개요</p>
-          <div className="prose prose-lg max-w-none">
-            {project.description && project.description.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="text-gray-600 leading-relaxed mb-6 text-[17px]">
-                {paragraph}
-              </p>
-            ))}
+      {/* project.description이 있을 때만 이 섹션 전체를 보여줍니다 */}
+      {project.description && (
+        <section className="px-6 lg:px-12 mb-32">
+          <div className="max-w-4xl mx-auto">
+            <p className="text-sm tracking-wider text-gray-500 mb-6 font-medium">프로젝트 개요</p>
+            <div className="prose prose-lg max-w-none">
+              {project.description.split('\n\n').map((paragraph, index) => (
+                <p key={index} className="text-gray-600 leading-relaxed mb-6 text-[17px]">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Image Gallery */}
       {/* 사진이 2장 이상일 때만 갤러리 섹션을 보여줌 (메인 1장만 있으면 갤러리 안 나옴) */}
