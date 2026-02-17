@@ -12,8 +12,8 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
   const [beforeAfterSlider, setBeforeAfterSlider] = useState(50);
 
   // images 배열이 없거나 비어있을 경우를 대비한 안전 장치
-  const galleryImages = project.images && project.images.length > 1 ? project.images.slice(1) : [];
-  const mainImage = project.images && project.images.length > 0 ? project.images[0] : project.image;
+  const galleryImages = project.images || [];
+  const mainImage = project.image || (project.images && project.images[0]);
 
   return (
     <div>
@@ -91,7 +91,7 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
         <div className="max-w-7xl mx-auto">
           <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">갤러리</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {galleryImages.slice(1).map((image, index) => (
+            {galleryImages.map((image, index) => (
               <div key={index} className="bg-gray-100">
                 <img 
                   src={image}
