@@ -18,75 +18,80 @@ export function Contact() {
 
       {/* Main Content */}
       <section className="py-24 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
-            {/* Left Column - Information */}
-            <div>
-              <div className="mb-16">
-                <p className="text-sm tracking-wider text-gray-500 mb-3 font-medium">문의하기</p>
-                <h2 className="text-4xl font-bold text-gray-900 mb-8">
-                  상담 받아보세요
-                </h2>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  용인시 처인구에서 주택 건축, 설비, 증개축, 대수리, 부분수리 등을 
-                  전문으로 진행하고 있습니다.
-                </p>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  오랜 경력과 노하우를 바탕으로 합리적인 비용과 
-                  안전하고 효율적인 시공을 약속드립니다.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  고객 만족을 최우선으로 하며, 작은 일 하나에도 최선을 다하겠습니다.
-                </p>
+        {/* max-w-3xl mx-auto: 너비를 제한하고 중앙 정렬 */}
+        {/* text-center: 글자들을 가운데 정렬 */}
+        <div className="max-w-3xl mx-auto text-center">
+          
+          <div className="mb-16">
+            <p className="text-sm tracking-wider text-gray-500 mb-3 font-medium">문의하기</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-8">
+              상담 받아보세요
+            </h2>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              용인시 처인구에서 주택 건축, 설비, 증개축, 대수리, 부분수리 등을<br className="hidden md:block" />
+              전문으로 진행하고 있습니다.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              오랜 경력과 노하우를 바탕으로 합리적인 비용과<br className="hidden md:block" />
+              안전하고 효율적인 시공을 약속드립니다.
+            </p>
+            <p className="text-gray-600 leading-relaxed">
+              고객 만족을 최우선으로 하며, 작은 일 하나에도 최선을 다하겠습니다.
+            </p>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-8">
+            
+            {/* 전화번호 */}
+            {/* justify-center: 아이콘과 글자를 화면 중앙으로 배치 */}
+            {/* text-left: 아이콘 옆의 글자들은 왼쪽 정렬 유지 (가독성 위해) */}
+            <div className="flex gap-4 justify-center text-left items-start">
+              <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
+                <Phone className="w-5 h-5 text-gray-600" />
               </div>
-
-              {/* Contact Information */}
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 font-medium">전화</p>
-                    <a 
-                      href="tel:5551234567"
-                      className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors"
-                    >
-                      0507-1359-6512
-                    </a>
-                    <p className="text-sm text-gray-500 mt-1">매일, 24시간 영업 · 연중무휴</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 font-medium">이메일</p>
-                    <a 
-                      href="mailto:hello@minarchitecture.com"
-                      className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors break-all"
-                    >
-                      hello@minarchitecture.com
-                    </a>
-                    <p className="text-sm text-gray-500 mt-1">24시간 내 답변</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 font-medium">지역</p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      경기도 용인시 처인구
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1 font-medium">전화</p>
+                <a 
+                  href="tel:050713596512"
+                  className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors"
+                >
+                  0507-1359-6512
+                </a>
+                <p className="text-sm text-gray-500 mt-1">매일, 24시간 영업 · 연중무휴</p>
               </div>
             </div>
+
+            {/* 이메일 */}
+            <div className="flex gap-4 justify-center text-left items-start">
+              <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
+                <Mail className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1 font-medium">이메일</p>
+                <a 
+                  href="mailto:hello@minarchitecture.com"
+                  className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors break-all"
+                >
+                  hello@minarchitecture.com
+                </a>
+                <p className="text-sm text-gray-500 mt-1">24시간 내 답변</p>
+              </div>
+            </div>
+
+            {/* 주소 */}
+            <div className="flex gap-4 justify-center text-left items-start">
+              <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
+                <MapPin className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1 font-medium">지역</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  경기도 용인시 처인구
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
