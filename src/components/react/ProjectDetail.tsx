@@ -86,23 +86,27 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
       </section>
 
       {/* Image Gallery */}
-      {galleryImages.length > 0 && (
+      {/* 사진이 2장 이상일 때만 갤러리 섹션을 보여줌 (메인 1장만 있으면 갤러리 안 나옴) */}
+      {galleryImages.length > 1 && (
         <section className="px-6 lg:px-12 mb-32">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">갤러리</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {galleryImages.map((image, index) => (
-              <div key={index} className="bg-gray-100">
-                <img 
-                  src={image}
-                  alt={`${project.title} 디테일 ${index + 1}`}
-                  className="w-full h-auto"
-                />
-              </div>
-            ))}
+          <div className="max-w-7xl mx-auto">
+            <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">갤러리</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              
+              {/* slice(1)을 다시 추가해서 첫 번째(메인) 사진은 갤러리에서 뺌 */}
+              {galleryImages.slice(1).map((image, index) => (
+                <div key={index} className="bg-gray-100">
+                  <img 
+                    src={image}
+                    alt={`${project.title} 디테일 ${index + 1}`}
+                    className="w-full h-auto"
+                  />
+                </div>
+              ))}
+              
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       )}
 
       {/* Before and After Section - 데이터가 있을 때만 표시 */}
