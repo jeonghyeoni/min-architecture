@@ -1,18 +1,19 @@
-<nav class="border-b border-gray-200 bg-white">
+<nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
   <div class="max-w-7xl mx-auto px-6 lg:px-12">
     <div class="flex items-center justify-between h-20">
       <a href="/" class="flex items-center group">
         <img 
           src="/logo-full.svg" 
           alt="민건축" 
-          class="h-10 md:h-12 w-auto transition-opacity group-hover:opacity-80" 
+          class="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-70" 
         />
       </a>
-      <div class="flex gap-12">
-        <a href="/" class="text-gray-600 hover:text-gray-900">홈</a>
-        <a href="/projects" class="text-gray-600 hover:text-gray-900">프로젝트</a>
-        <a href="/contact" class="text-gray-600 hover:text-gray-900">문의하기</a>
+      <div class="flex items-center gap-8 md:gap-12">
+        <a href="/" class="text-sm font-medium text-muted hover:text-foreground transition-colors">홈</a>
+        <a href="/projects" class="text-sm font-medium text-muted hover:text-foreground transition-colors">프로젝트</a>
+        <a href="/contact" class="hidden sm:inline-flex text-sm font-medium bg-foreground text-background px-5 py-2.5 hover:bg-foreground/90 transition-colors">문의하기</a>
       </div>
     </div>
   </div>
 </nav>
+<div class="h-20"></div>
