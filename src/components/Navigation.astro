@@ -1,3 +1,10 @@
+---
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
+const isProjects = currentPath.startsWith('/projects');
+const isContact = currentPath.startsWith('/contact');
+---
+
 <nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
   <div class="max-w-7xl mx-auto px-6 lg:px-12">
     <div class="flex items-center justify-between h-20">
@@ -8,10 +15,41 @@
           class="h-9 md:h-10 w-auto transition-opacity group-hover:opacity-70" 
         />
       </a>
-      <div class="flex items-center gap-8 md:gap-12">
-        <a href="/" class="text-sm font-medium text-muted hover:text-foreground transition-colors">홈</a>
-        <a href="/projects" class="text-sm font-medium text-muted hover:text-foreground transition-colors">프로젝트</a>
-        <a href="/contact" class="hidden sm:inline-flex text-sm font-medium bg-foreground text-background px-5 py-2.5 hover:bg-foreground/90 transition-colors">문의하기</a>
+      <div class="flex items-center gap-2 md:gap-4">
+        <a 
+          href="/" 
+          class={`relative text-sm font-medium px-4 py-2 transition-colors ${
+            isHome 
+              ? 'text-foreground' 
+              : 'text-muted hover:text-foreground'
+          }`}
+        >
+          홈
+          {isHome && <span class="absolute bottom-0 left-4 right-4 h-0.5 bg-accent"></span>}
+        </a>
+        <a 
+          href="/projects" 
+          class={`relative text-sm font-medium px-4 py-2 transition-colors ${
+            isProjects 
+              ? 'text-foreground' 
+              : 'text-muted hover:text-foreground'
+          }`}
+        >
+          프로젝트
+          {isProjects && <span class="absolute bottom-0 left-4 right-4 h-0.5 bg-accent"></span>}
+        </a>
+        <a 
+          href="/contact" 
+          class={`relative text-sm font-medium px-4 py-2 transition-colors ${
+            isContact 
+              ? 'text-foreground' 
+              : 'text-muted hover:text-foreground'
+          }`}
+        >
+          <span class="hidden sm:inline">문의하기</span>
+          <span class="sm:hidden">문의</span>
+          {isContact && <span class="absolute bottom-0 left-4 right-4 h-0.5 bg-accent"></span>}
+        </a>
       </div>
     </div>
   </div>
