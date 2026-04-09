@@ -15,11 +15,11 @@ export function Home({ recentProjects }: HomeProps) {
   ];
 
   const services = [
-    "주택 건축",
-    "인테리어",
-    "방수",
-    "증개축 · 대수리",
-    "부분수리 · 설비"
+    { name: "주택 건축", filter: "NewBuild" },
+    { name: "인테리어", filter: "Interior" },
+    { name: "방수", filter: "Waterproofing" },
+    { name: "증개축 · 대수리", filter: "Extension" },
+    { name: "부분수리 · 설비", filter: "Repair" }
   ];
 
   const featuredProjects = recentProjects || [];
@@ -27,52 +27,90 @@ export function Home({ recentProjects }: HomeProps) {
 
   return (
     <div className="bg-background">
-      {/* Hero Section - Minimal & Elegant */}
-      <section className="min-h-screen flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-12">
-          <div className="text-center max-w-4xl">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold text-foreground mb-8 tracking-tight text-balance leading-[1.1]">
-              작은 일 하나에도<br />
-              <span className="text-muted">최선을 다합니다</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto leading-relaxed mb-12">
-              용인시 처인구에서 주택 건축, 인테리어, 설비,<br className="hidden md:block" />
-              증개축, 대수리, 부분수리, 방수를 전문으로 합니다.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a 
-                href="/projects"
-                className="group inline-flex items-center gap-3 bg-foreground text-background px-8 py-4 hover:bg-foreground/90 transition-all font-medium"
-              >
-                작업 둘러보기
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
-              <a 
-                href="/contact"
-                className="inline-flex items-center gap-3 text-foreground hover:text-muted transition-colors font-medium px-8 py-4"
-              >
-                문의하기
-              </a>
-            </div>
-          </div>
+      {/* Hero Section - Background Image with Blur */}
+      <section className="relative min-h-screen flex items-center justify-center">
+        {/* Background Image with Blur */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img 
+            src={heroImage}
+            alt=""
+            className="w-full h-full object-cover scale-110 blur-sm"
+          />
+          <div className="absolute inset-0 bg-foreground/40" />
         </div>
         
-        {/* Hero Image */}
-        <div className="px-6 lg:px-12 pb-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="aspect-[16/9] md:aspect-[21/9] overflow-hidden">
-              <img 
-                src={heroImage}
-                alt="민건축 시공 현장"
-                className="w-full h-full object-cover"
-              />
+        {/* Content */}
+        <div className="relative z-10 text-center max-w-4xl px-6 py-20">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold text-background mb-8 tracking-tight text-balance leading-[1.1]">
+            작은 일 하나에도<br />
+            <span className="text-background/80">최선을 다합니다</span>
+          </h1>
+          <p className="text-lg md:text-xl text-background/80 max-w-2xl mx-auto leading-relaxed mb-12">
+            용인시 처인구에서 주택 건축, 인테리어, 설비,<br className="hidden md:block" />
+            증개축, 대수리, 부분수리, 방수를 전문으로 합니다.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a 
+              href="/projects"
+              className="group inline-flex items-center gap-3 bg-background text-foreground px-8 py-4 hover:bg-background/90 transition-all font-medium"
+            >
+              작업 둘러보기
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+            <a 
+              href="/contact"
+              className="inline-flex items-center gap-3 text-background border border-background/50 hover:bg-background hover:text-foreground transition-colors font-medium px-8 py-4"
+            >
+              문의하기
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Projects Section */}
+      <section className="py-24 md:py-32 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
+            <div>
+              <p className="text-sm tracking-widest text-muted uppercase mb-4 font-medium">Projects</p>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground leading-tight">
+                최근 프로젝트
+              </h2>
             </div>
+            <a 
+              href="/projects"
+              className="group inline-flex items-center gap-2 text-foreground hover:text-muted transition-colors font-medium w-fit"
+            >
+              전체 보기
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {featuredProjects.map((project) => (
+              <a 
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="group"
+              >
+                <div className="aspect-[4/5] bg-card mb-6 overflow-hidden">
+                  <img 
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                </div>
+                <p className="text-sm text-muted mb-2 uppercase tracking-wider">{project.typeKr}</p>
+                <h3 className="text-xl font-semibold text-foreground group-hover:text-muted transition-colors leading-snug">
+                  {project.title}
+                </h3>
+              </a>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Process Section - Card Style */}
-      <section className="py-24 md:py-32 px-6 lg:px-12">
+      <section className="py-24 md:py-32 px-6 lg:px-12 bg-secondary">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16">
             <p className="text-sm tracking-widest text-muted uppercase mb-4 font-medium">Process</p>
@@ -150,58 +188,17 @@ export function Home({ recentProjects }: HomeProps) {
               </h2>
             </div>
             <div className="flex flex-col">
-              {services.map((service, index) => (
-                <div 
-                  key={service}
-                  className="group flex items-center justify-between py-6 border-b border-border cursor-pointer hover:pl-4 transition-all"
+              {services.map((service) => (
+                <a 
+                  key={service.name}
+                  href={`/projects?filter=${service.filter}`}
+                  className="group flex items-center justify-between py-6 border-b border-border hover:pl-4 transition-all"
                 >
-                  <span className="text-xl md:text-2xl font-medium text-foreground">{service}</span>
+                  <span className="text-xl md:text-2xl font-medium text-foreground">{service.name}</span>
                   <ArrowUpRight className="w-5 h-5 text-muted group-hover:text-foreground transition-colors" />
-                </div>
+                </a>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Projects Section */}
-      <section className="py-24 md:py-32 px-6 lg:px-12 bg-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
-            <div>
-              <p className="text-sm tracking-widest text-muted uppercase mb-4 font-medium">Projects</p>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground leading-tight">
-                최근 프로젝트
-              </h2>
-            </div>
-            <a 
-              href="/projects"
-              className="group inline-flex items-center gap-2 text-foreground hover:text-muted transition-colors font-medium w-fit"
-            >
-              전체 보기
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProjects.map((project) => (
-              <a 
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="group"
-              >
-                <div className="aspect-[4/5] bg-card mb-6 overflow-hidden">
-                  <img 
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                </div>
-                <p className="text-sm text-muted mb-2 uppercase tracking-wider">{project.typeKr}</p>
-                <h3 className="text-xl font-semibold text-foreground group-hover:text-muted transition-colors leading-snug">
-                  {project.title}
-                </h3>
-              </a>
-            ))}
           </div>
         </div>
       </section>
