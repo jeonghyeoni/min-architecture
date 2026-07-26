@@ -74,7 +74,10 @@ async function uploadImage(file: File, projectId?: number): Promise<string> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ contentType, projectId }),
   });
-  if (!res.ok) throw new Error("업로드 주소를 받지 못했습니다");
+  if (!res.ok) {
+    const b = await res.json().catch(() => ({}));
+    throw new Error(`[${res.status}] ${b.error ?? "업로드 주소를 받지 못했습니다"}`);
+  }
   const { signedUrl, publicUrl } = await res.json();
 
   // Storage 로 직접 올린다. 서버 함수의 4.5MB 본문 제한을 우회한다.
@@ -83,7 +86,9 @@ async function uploadImage(file: File, projectId?: number): Promise<string> {
     headers: { "content-type": contentType },
     body: blob,
   });
-  if (!put.ok) throw new Error("이미지 업로드에 실패했습니다");
+  if (!put.ok) {
+    throw new Error(`이미지 업로드 실패 (${put.status}). 잠시 후 다시 시도해주세요.`);
+  }
 
   return publicUrl;
 }
@@ -228,8 +233,16 @@ export default function PostEditor({ initial }: Props) {
           },
         );
         if (!res.ok) {
-          const b = await res.json().catch(() => ({}));
-          throw new Error(b.error ?? "저장에 실패했습니다");
+          // 서버가 JSON 이 아닌 응답(예: 오류 페이지)을 줄 수도 있다.
+          // 그 경우 본문 앞부분이라도 보여줘야 원인을 짚을 수 있다.
+          const raw = await res.text();
+          let message: string;
+          try {
+            message = JSON.parse(raw).error ?? raw.slice(0, 200);
+          } catch {
+            message = raw.slice(0, 200) || "응답이 비어 있습니다";
+          }
+          throw new Error(`[${res.status}] ${message}`);
         }
         const data = await res.json();
         if (isNew && data.id) {

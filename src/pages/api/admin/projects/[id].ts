@@ -1,75 +1,69 @@
 import type { APIRoute } from "astro";
 import { serverClient } from "../../../../lib/supabase";
-import { isSameOrigin, SESSION_COOKIE, verifySessionToken } from "../../../../lib/auth";
-import { buildRow } from "./index";
+import { buildRow } from "../../../../lib/postInput";
+import { guard, json } from "./index";
 
 export const prerender = false;
 
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-
-async function guard(request: Request, cookies: any, site: URL | undefined) {
-  if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
-    return json({ error: "unauthorized" }, 401);
-  }
-  if (site && !isSameOrigin(request, site.toString())) {
-    return json({ error: "bad_origin" }, 403);
-  }
-  return null;
-}
-
-export const PUT: APIRoute = async ({ request, cookies, params, site }) => {
-  const denied = await guard(request, cookies, site);
-  if (denied) return denied;
-  if (!request.headers.get("content-type")?.includes("application/json")) {
-    return json({ error: "invalid_content_type" }, 415);
-  }
-
-  const id = Number(params.id);
-  if (!Number.isInteger(id)) return json({ error: "invalid_id" }, 400);
-
-  let input: any;
+export const PUT: APIRoute = async ({ request, cookies, params }) => {
   try {
-    input = await request.json();
-  } catch {
-    return json({ error: "invalid_body" }, 400);
-  }
+    const denied = await guard(request, cookies);
+    if (denied) return denied;
 
-  const row = buildRow(input);
-  if (!row.title) return json({ error: "title_required" }, 400);
+    const id = Number(params.id);
+    if (!Number.isInteger(id)) return json({ error: "잘못된 글 번호입니다." }, 400);
 
-  // 이미 발행된 글을 수정할 때 published_at 을 덮어쓰지 않는다.
-  // 최초 발행 시각이 바뀌면 Article 스키마의 datePublished 가 흔들린다.
-  const patch: Record<string, unknown> = { ...row };
-  if (row.status === "published") {
-    const { data: existing } = await serverClient()
+    let input: any;
+    try {
+      input = await request.json();
+    } catch {
+      return json({ error: "요청 본문을 읽지 못했습니다." }, 400);
+    }
+
+    const row = buildRow(input);
+    if (!row.title) return json({ error: "제목을 입력해주세요." }, 400);
+
+    const supabase = serverClient();
+
+    // 이미 발행된 글을 수정할 때 최초 발행 시각을 덮어쓰지 않는다.
+    // 바뀌면 Article 스키마의 datePublished 가 흔들린다.
+    const patch: Record<string, unknown> = { ...row };
+    if (row.status === "published") {
+      const { data: existing } = await supabase
+        .from("projects")
+        .select("published_at")
+        .eq("id", id)
+        .maybeSingle();
+      if (existing?.published_at) patch.published_at = existing.published_at;
+    }
+
+    const { data, error } = await supabase
       .from("projects")
-      .select("published_at")
+      .update(patch)
       .eq("id", id)
-      .maybeSingle();
-    if (existing?.published_at) patch.published_at = existing.published_at;
+      .select("id");
+
+    if (error) return json({ error: `저장 실패: ${error.message}` }, 500);
+    if (!data?.length) return json({ error: "해당 글을 찾지 못했습니다." }, 404);
+
+    return json({ ok: true, id }, 200);
+  } catch (e: any) {
+    return json({ error: `서버 오류: ${e?.message ?? e}` }, 500);
   }
-
-  const { error } = await serverClient()
-    .from("projects")
-    .update(patch)
-    .eq("id", id);
-
-  if (error) return json({ error: error.message }, 500);
-  return json({ ok: true, id }, 200);
 };
 
-export const DELETE: APIRoute = async ({ request, cookies, params, site }) => {
-  const denied = await guard(request, cookies, site);
-  if (denied) return denied;
+export const DELETE: APIRoute = async ({ request, cookies, params }) => {
+  try {
+    const denied = await guard(request, cookies, { requireJson: false });
+    if (denied) return denied;
 
-  const id = Number(params.id);
-  if (!Number.isInteger(id)) return json({ error: "invalid_id" }, 400);
+    const id = Number(params.id);
+    if (!Number.isInteger(id)) return json({ error: "잘못된 글 번호입니다." }, 400);
 
-  const { error } = await serverClient().from("projects").delete().eq("id", id);
-  if (error) return json({ error: error.message }, 500);
-  return json({ ok: true }, 200);
+    const { error } = await serverClient().from("projects").delete().eq("id", id);
+    if (error) return json({ error: `삭제 실패: ${error.message}` }, 500);
+    return json({ ok: true }, 200);
+  } catch (e: any) {
+    return json({ error: `서버 오류: ${e?.message ?? e}` }, 500);
+  }
 };

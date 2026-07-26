@@ -26,41 +26,47 @@ const EXT_BY_TYPE: Record<string, string> = {
   "image/gif": "gif",
 };
 
-export const POST: APIRoute = async ({ request, cookies, site }) => {
-  if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
-    return json({ error: "unauthorized" }, 401);
-  }
-  if (site && !isSameOrigin(request, site.toString())) {
-    return json({ error: "bad_origin" }, 403);
-  }
-
-  let input: any;
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    input = await request.json();
-  } catch {
-    return json({ error: "invalid_body" }, 400);
+    if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
+      return json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401);
+    }
+    if (!isSameOrigin(request)) {
+      return json({ error: "요청 출처를 확인할 수 없습니다." }, 403);
+    }
+
+    let input: any;
+    try {
+      input = await request.json();
+    } catch {
+      return json({ error: "요청 본문을 읽지 못했습니다." }, 400);
+    }
+
+    const ext = EXT_BY_TYPE[input?.contentType];
+    if (!ext) {
+      return json({ error: "지원하지 않는 이미지 형식입니다. (jpg, png, webp, gif)" }, 400);
+    }
+
+    // 아직 id 가 없는 새 글은 drafts/ 아래에 올린다.
+    const scope = Number.isInteger(Number(input.projectId))
+      ? `projects/${Number(input.projectId)}`
+      : `drafts/${new Date().toISOString().slice(0, 10)}`;
+    const path = `${scope}/${randomUUID()}.${ext}`;
+
+    const supabase = serverClient();
+    const { data, error } = await supabase.storage
+      .from(IMAGE_BUCKET)
+      .createSignedUploadUrl(path);
+
+    if (error) return json({ error: `업로드 준비 실패: ${error.message}` }, 500);
+
+    const { data: pub } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+
+    return json(
+      { signedUrl: data.signedUrl, token: data.token, path, publicUrl: pub.publicUrl },
+      200,
+    );
+  } catch (e: any) {
+    return json({ error: `서버 오류: ${e?.message ?? e}` }, 500);
   }
-
-  const ext = EXT_BY_TYPE[input.contentType];
-  if (!ext) return json({ error: "unsupported_type" }, 400);
-
-  // 아직 id 가 없는 새 글은 drafts/ 아래에 올린다.
-  const scope = Number.isInteger(Number(input.projectId))
-    ? `projects/${Number(input.projectId)}`
-    : `drafts/${new Date().toISOString().slice(0, 10)}`;
-  const path = `${scope}/${randomUUID()}.${ext}`;
-
-  const supabase = serverClient();
-  const { data, error } = await supabase.storage
-    .from(IMAGE_BUCKET)
-    .createSignedUploadUrl(path);
-
-  if (error) return json({ error: error.message }, 500);
-
-  const { data: pub } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
-
-  return json(
-    { signedUrl: data.signedUrl, token: data.token, path, publicUrl: pub.publicUrl },
-    200,
-  );
 };

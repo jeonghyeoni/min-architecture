@@ -76,15 +76,41 @@ export const sessionCookieOptions = {
 };
 
 /**
- * 변경 요청의 Origin 검사. SameSite=Lax 가 못 막는 구멍을 메운다.
- * 폼 인코딩 요청은 아예 받지 않으므로 여기서는 Origin 만 본다.
+ * 변경 요청의 CSRF 검사. SameSite=Lax 가 못 막는 구멍을 메운다.
+ *
+ * 비교 대상은 **요청이 실제로 도착한 호스트**다.
+ * 설정에 박아둔 정식 도메인(astro.config 의 site)과 비교하면,
+ * Vercel 프리뷰 URL이나 vercel.app 주소로 관리자에 접속했을 때
+ * 정상적인 요청까지 전부 막힌다. CSRF 방어에 필요한 것은
+ * "요청을 보낸 출처 == 요청을 받은 출처" 이지 정식 도메인 일치가 아니다.
  */
-export function isSameOrigin(request: Request, siteUrl: string): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return false;
+export function isSameOrigin(request: Request): boolean {
+  let self: string;
   try {
-    return new URL(origin).origin === new URL(siteUrl).origin;
+    self = new URL(request.url).origin;
   } catch {
     return false;
   }
+
+  const origin = request.headers.get("origin");
+  if (origin) {
+    try {
+      return new URL(origin).origin === self;
+    } catch {
+      return false;
+    }
+  }
+
+  // 일부 브라우저는 same-origin 요청에 Origin 을 빼기도 한다. Referer 로 보완.
+  const referer = request.headers.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).origin === self;
+    } catch {
+      return false;
+    }
+  }
+
+  // 둘 다 없으면 브라우저가 보낸 요청이 아니다.
+  return false;
 }
