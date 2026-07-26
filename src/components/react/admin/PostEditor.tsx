@@ -3,8 +3,13 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import { EditableImage } from "./EditableImage";
+import { BeforeAfterBlock } from "./BeforeAfterNode";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import {
+  AlignCenter, AlignLeft, AlignRight, Bold, Columns2, Heading2,
+  Image as ImageIcon, Link as LinkIcon, List, Quote, Underline as UnderlineIcon,
+} from "lucide-react";
 
 /**
  * 시공사례 작성·편집 화면.
@@ -106,14 +111,6 @@ export default function PostEditor({ initial }: Props) {
   const idRef = useRef<number | undefined>(initial.id);
   const dirtyRef = useRef(false);
 
-  const replaceInputRef = useRef<HTMLInputElement>(null);
-  const replaceIndexRef = useRef<number | null>(null);
-  const replaceRef = useRef<((i: number) => void) | null>(null);
-  replaceRef.current = (i: number) => {
-    replaceIndexRef.current = i;
-    replaceInputRef.current?.click();
-  };
-
   const set = <K extends keyof PostInput>(key: K, value: PostInput[K]) => {
     dirtyRef.current = true;
     setForm((f) => ({ ...f, [key]: value }));
@@ -133,42 +130,41 @@ export default function PostEditor({ initial }: Props) {
     }
   };
 
-  const moveImage = (index: number, delta: number) => {
-    dirtyRef.current = true;
-    setForm((prev) => {
-      const next = [...prev.images];
-      const target = index + delta;
-      if (target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return { ...prev, images: next };
-    });
-  };
+  /** 본문 이미지 alt. 네이버 이미지검색 유입의 주요 경로라 비워두지 않는다. */
+  const autoAlt = () =>
+    [form.location || "용인 처인구", form.typeKr, form.title].filter(Boolean).join(" ");
 
   /**
-   * 갤러리에 있던 사진을 본문 끝에 넣고 갤러리를 비운다.
+   * 예전 글에 남아 있는 갤러리·전후 사진을 본문으로 옮긴다.
    *
-   * 노션에서 옮겨온 글은 사진이 전부 갤러리 배열에만 있어서 본문 편집기에
-   * 아무것도 보이지 않는다. 한 번 옮겨두면 글과 사진을 섞어 쓸 수 있다.
-   * 양쪽에 중복으로 남으면 상세 페이지에 사진이 두 번 나오므로 갤러리는 비운다.
+   * 노션에서 옮겨온 글은 사진이 images 배열과 before/after 컬럼에만 있어서
+   * 본문 편집기에는 아무것도 보이지 않았다. 이제 사진은 전부 본문에서 다루므로
+   * 한 번 옮겨두면 글과 사진을 원하는 순서로 섞을 수 있다.
+   * 옮긴 뒤 원래 자리는 비운다. 그대로 두면 상세 페이지에 두 번 나온다.
    */
-  const moveGalleryIntoBody = () => {
-    if (!editor || !form.images.length) return;
+  const legacyCount = form.images.length + (form.beforeImage && form.afterImage ? 1 : 0);
+
+  const moveLegacyIntoBody = () => {
+    if (!editor || !legacyCount) return;
     if (
       !confirm(
-        `갤러리 사진 ${form.images.length}장을 본문 끝으로 옮깁니다.\n` +
-          `옮긴 뒤 본문에서 순서를 바꾸거나 사이에 글을 쓸 수 있습니다.\n\n계속할까요?`,
+        `예전에 등록된 사진을 본문 끝으로 옮깁니다.\n` +
+          `옮긴 뒤에는 본문에서 순서를 바꾸거나 사이에 글을 쓸 수 있습니다.\n\n계속할까요?`,
       )
     ) {
       return;
     }
 
-    const alt = [form.location || "용인 처인구", form.typeKr, form.title]
-      .filter(Boolean)
-      .join(" ");
-
+    const alt = autoAlt();
     const chain = editor.chain().focus("end");
     for (const src of form.images) {
       chain.createParagraphNear().setImage({ src, alt });
+    }
+    if (form.beforeImage && form.afterImage) {
+      chain.insertContent({
+        type: "beforeAfter",
+        attrs: { before: form.beforeImage, after: form.afterImage },
+      });
     }
     chain.run();
 
@@ -176,17 +172,9 @@ export default function PostEditor({ initial }: Props) {
     setForm((prev) => ({
       ...prev,
       images: [],
+      beforeImage: null,
+      afterImage: null,
       contentHtml: editor.getHTML(),
-    }));
-  };
-
-  const removeImage = (index: number) => {
-    dirtyRef.current = true;
-    // Storage 파일은 지우지 않는다. 다른 글이나 본문에서 같은 주소를 쓰고 있을 수
-    // 있어서, 목록에서만 빼는 편이 안전하다.
-    setForm((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
     }));
   };
 
@@ -196,12 +184,7 @@ export default function PostEditor({ initial }: Props) {
       setError(null);
       try {
         const url = await uploadImage(file, idRef.current);
-        // 본문 이미지 alt 는 네이버 이미지검색 유입의 주요 경로다.
-        // 비워두면 그대로 alt="" 가 되므로 자동으로 채워준다.
-        const alt = [form.location || "용인 처인구", form.typeKr, form.title]
-          .filter(Boolean)
-          .join(" ");
-        editor.chain().focus().setImage({ src: url, alt }).run();
+        editor.chain().focus().setImage({ src: url, alt: autoAlt() }).run();
       } catch (e: any) {
         setError(e.message ?? "이미지 업로드 실패");
       } finally {
@@ -215,6 +198,7 @@ export default function PostEditor({ initial }: Props) {
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3, 4] } }),
       EditableImage.configure({ HTMLAttributes: { loading: "lazy" } }),
+      BeforeAfterBlock.configure({ onUpload: (file) => upload(file) }),
       Link.configure({ openOnClick: false, autolink: true }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
@@ -343,7 +327,11 @@ export default function PostEditor({ initial }: Props) {
     }
   };
 
+  // select 는 기본 높이 계산이 input 과 달라 그냥 두면 카테고리 칸만 낮아진다.
+  // 높이를 명시해 제목 입력칸과 정확히 맞춘다.
   const field =
+    "w-full h-[46px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20";
+  const fieldMultiline =
     "w-full px-3 py-2.5 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20";
 
   return (
@@ -385,7 +373,7 @@ export default function PostEditor({ initial }: Props) {
               dirtyRef.current = true;
               setForm((f) => ({ ...f, typeKr: c.typeKr, type: c.type }));
             }}
-            className={field}
+            className={`${field} pr-8`}
           >
             {CATEGORIES.map((c) => (
               <option key={c.typeKr} value={c.typeKr}>{c.typeKr}</option>
@@ -436,145 +424,25 @@ export default function PostEditor({ initial }: Props) {
         />
       </div>
 
-      {/* 갤러리 */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          갤러리 사진
-          <span className="text-muted font-normal"> · 상세 페이지에 순서대로 표시됩니다</span>
-        </label>
-        <p className="text-sm text-muted mb-3">
-          첫 번째 사진이 상세 페이지 맨 위 큰 사진으로 쓰입니다.
-        </p>
-
-        {form.images.length > 0 && (
-          <div className="mb-4 p-4 bg-card border border-border rounded-lg">
-            <p className="text-sm text-foreground mb-1 font-medium">
-              사진 사이사이에 설명을 쓰고 싶으시면
-            </p>
-            <p className="text-sm text-muted mb-3">
-              갤러리 사진을 본문으로 옮기면 글과 사진을 원하는 순서로 섞을 수 있습니다.
-              옮긴 뒤에는 본문에서 사진마다 위/아래 이동과 삭제가 가능합니다.
-            </p>
-            <button
-              type="button"
-              onClick={moveGalleryIntoBody}
-              className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-secondary"
-            >
-              갤러리 사진 {form.images.length}장을 본문으로 옮기기
-            </button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
-          {form.images.map((url, i) => (
-            <div key={url + i} className="border border-border rounded-lg overflow-hidden bg-card">
-              <img src={url} alt="" className="w-full aspect-[4/3] object-cover" />
-              <div className="flex items-center justify-between px-1 py-1">
-                <div className="flex gap-0.5">
-                  <IconBtn label="앞으로" disabled={i === 0} onClick={() => moveImage(i, -1)}>←</IconBtn>
-                  <IconBtn label="뒤로" disabled={i === form.images.length - 1} onClick={() => moveImage(i, 1)}>→</IconBtn>
-                </div>
-                <div className="flex gap-0.5">
-                  <IconBtn label="교체" onClick={() => replaceRef.current?.(i)}>교체</IconBtn>
-                  <IconBtn label="삭제" danger onClick={() => removeImage(i)}>삭제</IconBtn>
-                </div>
-              </div>
-              {i === 0 && (
-                <p className="text-[11px] text-center text-muted pb-1">대표로 표시됨</p>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={async (e) => {
-            const files = Array.from(e.target.files ?? []);
-            e.target.value = "";
-            if (!files.length) return;
-            setUploading(true);
-            setError(null);
-            try {
-              const urls: string[] = [];
-              for (const f of files) urls.push(await uploadImage(f, idRef.current));
-              dirtyRef.current = true;
-              setForm((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
-            } catch (err: any) {
-              setError(err.message);
-            } finally {
-              setUploading(false);
-            }
-          }}
-          className="text-sm"
-        />
-        <input
-          type="file"
-          accept="image/*"
-          hidden
-          ref={replaceInputRef}
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            const idx = replaceIndexRef.current;
-            e.target.value = "";
-            if (!file || idx === null) return;
-            setUploading(true);
-            try {
-              const url = await uploadImage(file, idRef.current);
-              dirtyRef.current = true;
-              setForm((prev) => {
-                const next = [...prev.images];
-                next[idx] = url;
-                return { ...prev, images: next };
-              });
-            } catch (err: any) {
-              setError(err.message);
-            } finally {
-              setUploading(false);
-              replaceIndexRef.current = null;
-            }
-          }}
-        />
-      </div>
-
-      {/* 전 / 후 비교 */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          시공 전 · 후 사진
-          <span className="text-muted font-normal"> · 두 장 모두 있어야 비교 슬라이더가 나옵니다</span>
-        </label>
-        <div className="grid grid-cols-2 gap-4 max-w-lg">
-          <div>
-            <p className="text-sm text-muted mb-2">시공 전</p>
-            <ImageSlot
-              url={form.beforeImage}
-              onPick={async (file) => set("beforeImage", await upload(file))}
-              onClear={() => set("beforeImage", null)}
-            />
-          </div>
-          <div>
-            <p className="text-sm text-muted mb-2">시공 후</p>
-            <ImageSlot
-              url={form.afterImage}
-              onPick={async (file) => set("afterImage", await upload(file))}
-              onClear={() => set("afterImage", null)}
-            />
-          </div>
-        </div>
-        {(form.beforeImage || form.afterImage) && (
+      {/* 예전 글에만 남아 있는 사진 이관 안내 */}
+      {legacyCount > 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-foreground font-medium mb-1">
+            예전 방식으로 등록된 사진이 있습니다
+          </p>
+          <p className="text-sm text-muted mb-3">
+            사진은 이제 본문에서 관리합니다. 아래 버튼을 누르면 본문 끝으로 옮겨지고,
+            그 뒤에는 순서를 바꾸거나 사진 사이에 글을 쓸 수 있습니다.
+          </p>
           <button
             type="button"
-            onClick={() => {
-              dirtyRef.current = true;
-              setForm((f) => ({ ...f, beforeImage: f.afterImage, afterImage: f.beforeImage }));
-            }}
-            className="mt-3 px-4 py-2 border border-border rounded-lg text-sm hover:bg-card"
+            onClick={moveLegacyIntoBody}
+            className="px-4 py-2 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90"
           >
-            ⇄ 전 · 후 서로 바꾸기
+            사진 {legacyCount}개를 본문으로 옮기기
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 본문 */}
       <div>
@@ -583,7 +451,17 @@ export default function PostEditor({ initial }: Props) {
           사진은 끌어다 놓거나 붙여넣으면 그 자리에 들어갑니다.
           본문 안 사진에 마우스를 올리면 위/아래 이동·삭제 버튼이 나옵니다.
         </p>
-        <Toolbar editor={editor} onPickImage={(f) => insertImage(editor, f)} />
+        <Toolbar
+          editor={editor}
+          onPickImage={(f) => insertImage(editor, f)}
+          onInsertBeforeAfter={() =>
+            editor
+              ?.chain()
+              .focus()
+              .insertContent({ type: "beforeAfter", attrs: { before: null, after: null } })
+              .run()
+          }
+        />
         <div className="border border-border border-t-0 rounded-b-lg bg-card px-4 py-4">
           <EditorContent editor={editor} />
         </div>
@@ -601,7 +479,7 @@ export default function PostEditor({ initial }: Props) {
           rows={3}
           maxLength={200}
           placeholder="네이버·구글 검색결과에 표시될 두세 문장"
-          className={field}
+          className={fieldMultiline}
         />
       </div>
     </div>
@@ -682,41 +560,116 @@ function IconBtn({
   );
 }
 
-function Toolbar({ editor, onPickImage }: { editor: any; onPickImage: (f: File) => void }) {
+function Toolbar({
+  editor,
+  onPickImage,
+  onInsertBeforeAfter,
+}: {
+  editor: any;
+  onPickImage: (f: File) => void;
+  onInsertBeforeAfter: () => void;
+}) {
   const fileRef = useRef<HTMLInputElement>(null);
   if (!editor) return null;
 
-  const Btn = ({ on, active, children }: any) => (
+  const Btn = ({ on, active, title, children }: any) => (
     <button
       type="button"
       onClick={on}
-      className={`px-3 py-2 rounded text-sm min-w-[44px] ${
-        active ? "bg-foreground text-background" : "hover:bg-secondary"
+      title={title}
+      aria-label={title}
+      className={`p-2.5 rounded min-w-[40px] flex items-center justify-center ${
+        active ? "bg-foreground text-background" : "text-muted hover:bg-secondary hover:text-foreground"
       }`}
     >
       {children}
     </button>
   );
 
+  const Divider = () => <span className="w-px self-stretch my-1 bg-border" />;
+
   return (
-    <div className="flex flex-wrap gap-1 border border-border rounded-t-lg bg-card px-2 py-2 sticky top-[104px] z-20">
-      <Btn on={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-           active={editor.isActive("heading", { level: 2 })}>제목</Btn>
-      <Btn on={() => editor.chain().focus().toggleBold().run()}
-           active={editor.isActive("bold")}><b>굵게</b></Btn>
-      <Btn on={() => editor.chain().focus().toggleUnderline?.().run()}
-           active={editor.isActive("underline")}><u>밑줄</u></Btn>
-      <Btn on={() => editor.chain().focus().toggleBulletList().run()}
-           active={editor.isActive("bulletList")}>목록</Btn>
-      <Btn on={() => editor.chain().focus().toggleBlockquote().run()}
-           active={editor.isActive("blockquote")}>인용</Btn>
-      <Btn on={() => editor.chain().focus().setTextAlign("center").run()}
-           active={editor.isActive({ textAlign: "center" })}>가운데</Btn>
-      <Btn on={() => fileRef.current?.click()} active={false}>사진</Btn>
-      <Btn on={() => {
-        const url = prompt("링크 주소를 입력하세요 (https://)");
-        if (url) editor.chain().focus().setLink({ href: url }).run();
-      }} active={editor.isActive("link")}>링크</Btn>
+    <div className="flex flex-wrap items-center gap-0.5 border border-border rounded-t-lg bg-card px-2 py-1.5 sticky top-[104px] z-20">
+      <Btn
+        title="제목"
+        on={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        active={editor.isActive("heading", { level: 2 })}
+      >
+        <Heading2 size={18} />
+      </Btn>
+      <Btn title="굵게" on={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")}>
+        <Bold size={18} />
+      </Btn>
+      <Btn
+        title="밑줄"
+        on={() => editor.chain().focus().toggleUnderline?.().run()}
+        active={editor.isActive("underline")}
+      >
+        <UnderlineIcon size={18} />
+      </Btn>
+
+      <Divider />
+
+      {/* 정렬은 드래그로 선택한 범위가 걸쳐 있는 문단들에 적용된다.
+          text-align 은 문단 단위 속성이라 문단 일부만 정렬할 수는 없다. */}
+      <Btn
+        title="왼쪽 정렬"
+        on={() => editor.chain().focus().setTextAlign("left").run()}
+        active={editor.isActive({ textAlign: "left" })}
+      >
+        <AlignLeft size={18} />
+      </Btn>
+      <Btn
+        title="가운데 정렬"
+        on={() => editor.chain().focus().setTextAlign("center").run()}
+        active={editor.isActive({ textAlign: "center" })}
+      >
+        <AlignCenter size={18} />
+      </Btn>
+      <Btn
+        title="오른쪽 정렬"
+        on={() => editor.chain().focus().setTextAlign("right").run()}
+        active={editor.isActive({ textAlign: "right" })}
+      >
+        <AlignRight size={18} />
+      </Btn>
+
+      <Divider />
+
+      <Btn
+        title="목록"
+        on={() => editor.chain().focus().toggleBulletList().run()}
+        active={editor.isActive("bulletList")}
+      >
+        <List size={18} />
+      </Btn>
+      <Btn
+        title="인용"
+        on={() => editor.chain().focus().toggleBlockquote().run()}
+        active={editor.isActive("blockquote")}
+      >
+        <Quote size={18} />
+      </Btn>
+
+      <Divider />
+
+      <Btn title="사진 넣기" on={() => fileRef.current?.click()} active={false}>
+        <ImageIcon size={18} />
+      </Btn>
+      <Btn title="시공 전·후 비교 넣기" on={onInsertBeforeAfter} active={false}>
+        <Columns2 size={18} />
+      </Btn>
+      <Btn
+        title="링크"
+        on={() => {
+          const url = prompt("링크 주소를 입력하세요 (https://)");
+          if (url) editor.chain().focus().setLink({ href: url }).run();
+        }}
+        active={editor.isActive("link")}
+      >
+        <LinkIcon size={18} />
+      </Btn>
+
       <input
         ref={fileRef}
         type="file"
@@ -724,8 +677,8 @@ function Toolbar({ editor, onPickImage }: { editor: any; onPickImage: (f: File) 
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onPickImage(f);
           e.target.value = "";
+          if (f) onPickImage(f);
         }}
       />
     </div>

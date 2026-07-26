@@ -1,6 +1,31 @@
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import type { Project } from './ProjectsList'; // ProjectsList에서 정의한 인터페이스 재사용
+import { BeforeAfterSlider, splitContent } from './BeforeAfterSlider';
+
+/**
+ * 본문 렌더링.
+ *
+ * 본문 안에 전후비교 블록이 여러 개 들어갈 수 있어, HTML 을 그대로 주입하지 않고
+ * 표식을 기준으로 쪼갠 뒤 그 자리만 React 컴포넌트로 바꿔 끼운다.
+ * contentHtml 은 저장 시 서버에서 새니타이즈된 값이다.
+ */
+function RichContent({ html, alt }: { html: string; alt: string }) {
+  const parts = useMemo(() => splitContent(html), [html]);
+  return (
+    <div className="post-content">
+      {parts.map((part, i) =>
+        part.type === "beforeAfter" ? (
+          <div key={i} className="my-8">
+            <BeforeAfterSlider before={part.before!} after={part.after!} alt={alt} />
+          </div>
+        ) : (
+          <div key={i} dangerouslySetInnerHTML={{ __html: part.html! }} />
+        ),
+      )}
+    </div>
+  );
+}
 
 interface ProjectDetailProps {
   project: Project;
@@ -9,7 +34,6 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, prevProject, nextProject }: ProjectDetailProps) {
-  const [beforeAfterSlider, setBeforeAfterSlider] = useState(50);
 
   // images 배열이 없거나 비어있을 경우를 대비한 안전 장치
   const galleryImages = project.images || [];
@@ -81,9 +105,9 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
           <div className="max-w-4xl mx-auto">
             <p className="text-sm tracking-wider text-gray-500 mb-6 font-medium">프로젝트 개요</p>
             {project.contentHtml ? (
-              <div
-                className="post-content"
-                dangerouslySetInnerHTML={{ __html: project.contentHtml }}
+              <RichContent
+                html={project.contentHtml}
+                alt={`${project.location || '용인 처인구'} ${project.typeKr} ${project.title}`}
               />
             ) : (
               <div className="post-content">
@@ -121,70 +145,17 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
         </section>
       )}
 
-      {/* Before and After Section - 데이터가 있을 때만 표시 */}
+      {/* 예전 방식으로 저장된 전후 비교.
+          지금은 본문 블록으로 넣지만, 노션에서 옮겨온 글은 아직 컬럼에 남아 있다. */}
       {project.beforeImage && project.afterImage && (
         <section className="px-6 lg:px-12 mb-32">
           <div className="max-w-7xl mx-auto">
             <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">전후 비교</p>
-            <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden select-none group">
-              {/* 아래 깔리는 층 = 시공 후.
-                  덮개가 왼쪽만 덮으므로 여기는 오른쪽에 보이고, 라벨도 오른쪽이 AFTER 다. */}
-              <div className="absolute inset-0">
-                <img
-                  src={project.afterImage}
-                  alt={`${project.title} ${project.typeKr} 시공 후 완성 모습`}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* 덮개 층 = 시공 전.
-                  inset(0 X% 0 0) 은 오른쪽에서 X% 를 잘라내므로 왼쪽에만 남는다.
-                  왼쪽 라벨이 BEFORE 이므로 여기에 시공 전 사진이 와야 한다.
-                  (이 두 장이 서로 바뀌어 있어 라벨과 반대로 보이던 문제를 고침) */}
-              <div
-                className="absolute inset-0"
-                style={{ clipPath: `inset(0 ${100 - beforeAfterSlider}% 0 0)` }}
-              >
-                <img
-                  src={project.beforeImage}
-                  alt={`${project.title} ${project.typeKr} 시공 전 모습`}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Slider Control Line */}
-              <div 
-                className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-10"
-                style={{ left: `${beforeAfterSlider}%` }}
-              >
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center">
-                  <div className="flex gap-1">
-                    <div className="w-0.5 h-4 bg-gray-400" />
-                    <div className="w-0.5 h-4 bg-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Invisible Range Input for Dragging */}
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={beforeAfterSlider}
-                onChange={(e) => setBeforeAfterSlider(Number(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
-              />
-
-              {/* Labels */}
-              <div className="absolute top-6 right-6 bg-black/50 text-white px-4 py-2 text-sm backdrop-blur-sm">
-                AFTER
-              </div>
-              <div className="absolute top-6 left-6 bg-black/50 text-white px-4 py-2 text-sm backdrop-blur-sm">
-                BEFORE
-              </div>
-            </div>
+            <BeforeAfterSlider
+              before={project.beforeImage}
+              after={project.afterImage}
+              alt={`${project.title} ${project.typeKr}`}
+            />
           </div>
         </section>
       )}

@@ -19,6 +19,8 @@ const ALLOWED_TAGS = [
   "blockquote",
   "a", "img",
   "figure", "figcaption",
+  // 시공 전/후 비교 블록. 내용은 없고 속성으로만 두 사진 주소를 담는다.
+  "div",
 ];
 
 export function sanitizeContentHtml(dirty: string): string {
@@ -29,6 +31,16 @@ export function sanitizeContentHtml(dirty: string): string {
     allowedAttributes: {
       a: ["href", "title", "target", "rel"],
       img: ["src", "alt", "width", "height", "loading"],
+      // BeforeAfterNode 의 저장 형태. splitContent 가 이 속성으로 파싱한다.
+      div: ["data-before-after", "data-before", "data-after"],
+      // 정렬은 문단 단위 style 로 저장된다. 값은 아래 allowedStyles 로 제한한다.
+      p: ["style"],
+      h2: ["style"],
+      h3: ["style"],
+      h4: ["style"],
+    },
+    allowedStyles: {
+      "*": { "text-align": [/^(left|center|right|justify)$/] },
     },
     // https 만 허용. javascript:, data: 스킴을 원천 차단한다.
     allowedSchemes: ["https"],
@@ -54,6 +66,14 @@ export function sanitizeContentHtml(dirty: string): string {
       if (frame.tag === "img") {
         const src = frame.attribs.src ?? "";
         return !src.startsWith(origin);
+      }
+      if (frame.tag === "div") {
+        // 전후비교 블록이 아닌 div 는 남길 이유가 없다.
+        if (!("data-before-after" in frame.attribs)) return true;
+        const before = frame.attribs["data-before"] ?? "";
+        const after = frame.attribs["data-after"] ?? "";
+        // 두 장 다 우리 Storage 주소여야 한다. 아니면 블록째 버린다.
+        return !before.startsWith(origin) || !after.startsWith(origin);
       }
       return false;
     },

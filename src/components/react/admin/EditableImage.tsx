@@ -1,6 +1,8 @@
 import Image from "@tiptap/extension-image";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import { useState } from "react";
+import { ChevronDown, ChevronUp, Trash2, Type } from "lucide-react";
+import { moveBlock } from "./moveBlock";
 
 /**
  * 본문 안의 사진을 "글처럼" 다루기 위한 이미지 노드.
@@ -12,42 +14,8 @@ import { useState } from "react";
 function ImageNodeView({ node, updateAttributes, deleteNode, editor, getPos, selected }: any) {
   const [editingAlt, setEditingAlt] = useState(false);
 
-  /**
-   * 사진을 앞/뒤 형제 블록과 자리바꿈한다.
-   *
-   * ProseMirror 에는 "블록 이동" 명령이 없어서 직접 지우고 다시 넣는다.
-   * 삭제 후 좌표가 밀리므로 insert 위치는 반드시 tr.mapping 으로 변환해야 한다.
-   */
-  const move = (dir: -1 | 1) => {
-    const pos = getPos();
-    if (typeof pos !== "number") return;
-
-    const { state, view } = editor;
-    const $pos = state.doc.resolve(pos);
-    const parent = $pos.parent;
-    const index = $pos.index();
-    const targetIndex = index + dir;
-    if (targetIndex < 0 || targetIndex >= parent.childCount) return;
-
-    // 부모 안에서 이 노드의 시작 좌표를 앞 형제들의 크기로 계산한다.
-    let from = $pos.start();
-    for (let i = 0; i < index; i++) from += parent.child(i).nodeSize;
-
-    const self = parent.child(index);
-    const to = from + self.nodeSize;
-
-    const insertAt =
-      dir === -1
-        ? from - parent.child(index - 1).nodeSize
-        : to + parent.child(index + 1).nodeSize;
-
-    const tr = state.tr.delete(from, to);
-    tr.insert(tr.mapping.map(insertAt), self);
-    view.dispatch(tr);
-  };
-
   const btn =
-    "px-2.5 py-1.5 text-xs rounded bg-white/95 shadow-sm border border-black/5 hover:bg-white disabled:opacity-40";
+    "p-2 rounded bg-white/95 shadow-sm border border-black/5 hover:bg-white text-muted hover:text-foreground";
 
   return (
     <NodeViewWrapper
@@ -62,17 +30,24 @@ function ImageNodeView({ node, updateAttributes, deleteNode, editor, getPos, sel
 
       {/* 데스크톱은 마우스를 올렸을 때, 모바일은 항상 보이게 한다 */}
       <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-        <button type="button" className={btn} onClick={() => move(-1)} title="위로">↑ 위로</button>
-        <button type="button" className={btn} onClick={() => move(1)} title="아래로">↓ 아래로</button>
-        <button type="button" className={btn} onClick={() => setEditingAlt((v) => !v)}>설명</button>
+        <button type="button" className={btn} title="위로" onClick={() => moveBlock(editor, getPos, -1)}>
+          <ChevronUp size={16} />
+        </button>
+        <button type="button" className={btn} title="아래로" onClick={() => moveBlock(editor, getPos, 1)}>
+          <ChevronDown size={16} />
+        </button>
+        <button type="button" className={btn} title="사진 설명" onClick={() => setEditingAlt((v) => !v)}>
+          <Type size={16} />
+        </button>
         <button
           type="button"
-          className={`${btn} text-red-600`}
+          className={`${btn} hover:text-red-600`}
+          title="삭제"
           onClick={() => {
             if (confirm("이 사진을 본문에서 뺄까요?")) deleteNode();
           }}
         >
-          삭제
+          <Trash2 size={16} />
         </button>
       </div>
 
