@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { serverClient } from "../../../../lib/supabase";
 import { buildRow } from "../../../../lib/postInput";
-import { guard, json } from "./index";
+import { guard, json } from "../../../../lib/apiGuard";
 
 export const prerender = false;
 

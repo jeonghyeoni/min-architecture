@@ -109,10 +109,22 @@ export default function PostEditor({ initial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const idRef = useRef<number | undefined>(initial.id);
+  // ref 는 beforeunload 같은 콜백에서 최신값을 읽기 위해, state 는 화면 표시용.
   const dirtyRef = useRef(false);
+  const [dirty, setDirty] = useState(false);
+
+  const markDirty = () => {
+    dirtyRef.current = true;
+    setDirty(true);
+  };
+
+  const markClean = () => {
+    dirtyRef.current = false;
+    setDirty(false);
+  };
 
   const set = <K extends keyof PostInput>(key: K, value: PostInput[K]) => {
-    dirtyRef.current = true;
+    markDirty();
     setForm((f) => ({ ...f, [key]: value }));
   };
 
@@ -168,7 +180,7 @@ export default function PostEditor({ initial }: Props) {
     }
     chain.run();
 
-    dirtyRef.current = true;
+    markDirty();
     setForm((prev) => ({
       ...prev,
       images: [],
@@ -207,7 +219,7 @@ export default function PostEditor({ initial }: Props) {
     ],
     content: initial.contentHtml || "",
     onUpdate: ({ editor }) => {
-      dirtyRef.current = true;
+      markDirty();
       setForm((f) => ({ ...f, contentHtml: editor.getHTML() }));
     },
     editorProps: {
@@ -269,7 +281,7 @@ export default function PostEditor({ initial }: Props) {
           idRef.current = data.id;
           history.replaceState(null, "", `/admin/${data.id}/edit`);
         }
-        dirtyRef.current = false;
+        markClean();
         setSavedAt(
           new Date().toLocaleTimeString("ko-KR", {
             hour: "numeric",
@@ -288,7 +300,7 @@ export default function PostEditor({ initial }: Props) {
     [form, editor],
   );
 
-  // 20초마다 조용히 임시저장. 발행된 글은 자동으로 건드리지 않는다.
+  // 20초마다 조용히 자동저장. 공개된 글은 자동으로 건드리지 않는다.
   useEffect(() => {
     const t = setInterval(() => {
       if (dirtyRef.current && form.status === "draft" && form.title.trim()) {
@@ -298,37 +310,42 @@ export default function PostEditor({ initial }: Props) {
     return () => clearInterval(t);
   }, [save, form.status, form.title]);
 
-  // 저장 안 한 채로 나가려 할 때 경고
+  /**
+   * 저장하지 않고 나가려 할 때 경고.
+   *
+   * beforeunload 는 새로고침·탭닫기·주소 직접 이동만 잡는다.
+   * 관리자 화면 안의 링크(목록으로 가기 등)는 잡지 못하므로 클릭도 함께 가로챈다.
+   */
   useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (dirtyRef.current) e.preventDefault();
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
     };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+
+    const onClick = (e: MouseEvent) => {
+      if (!dirtyRef.current) return;
+      const link = (e.target as HTMLElement)?.closest?.("a");
+      if (!link) return;
+
+      const href = link.getAttribute("href");
+      // 새 탭으로 열거나 앵커·외부 스킴이면 현재 화면을 벗어나지 않는다.
+      if (!href || href.startsWith("#") || link.target === "_blank") return;
+
+      if (!confirm("저장하지 않은 내용이 있습니다.\n이 페이지를 벗어나면 변경 내용이 사라집니다.\n\n나가시겠습니까?")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
   }, []);
 
-  const publish = async () => {
-    const id = await save("published");
-    if (!id) return;
-    const res = await fetch("/api/admin/publish", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{}",
-    });
-    if (res.ok) {
-      alert("게시했습니다.\n약 2~3분 뒤 홈페이지에 나타납니다.");
-    } else {
-      const b = await res.json().catch(() => ({}));
-      alert(
-        b.error === "deploy_hook_not_configured"
-          ? "저장은 됐지만 자동 배포가 설정되지 않았습니다. Vercel 에서 Deploy Hook 을 등록해주세요."
-          : "저장은 됐지만 배포 요청에 실패했습니다.",
-      );
-    }
-  };
-
-  // select 는 기본 높이 계산이 input 과 달라 그냥 두면 카테고리 칸만 낮아진다.
-  // 높이를 명시해 제목 입력칸과 정확히 맞춘다.
   const field =
     "w-full h-[46px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20";
   const fieldMultiline =
@@ -337,31 +354,6 @@ export default function PostEditor({ initial }: Props) {
   return (
     <div className="space-y-6">
       {/* 상단 액션 바 */}
-      <div className="sticky top-14 z-30 bg-secondary/95 backdrop-blur py-3 flex flex-wrap items-center gap-3 border-b border-border">
-        <span className="text-sm text-muted mr-auto">
-          {saving ? "저장 중..." : savedAt ? `저장됨 · ${savedAt}` : "저장되지 않음"}
-          {form.status === "published" && " · 발행됨"}
-        </span>
-        <button
-          onClick={() => save("draft")}
-          disabled={saving}
-          className="px-5 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-card disabled:opacity-50"
-        >
-          임시저장
-        </button>
-        <button
-          onClick={publish}
-          disabled={saving}
-          className="px-5 py-2.5 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {form.status === "published" ? "수정 내용 반영" : "게시하기"}
-        </button>
-      </div>
-
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg">{error}</p>
-      )}
-
       {/* 카테고리 / 제목 */}
       <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
         <div>
@@ -370,7 +362,7 @@ export default function PostEditor({ initial }: Props) {
             value={form.typeKr}
             onChange={(e) => {
               const c = CATEGORIES.find((c) => c.typeKr === e.target.value)!;
-              dirtyRef.current = true;
+              markDirty();
               setForm((f) => ({ ...f, typeKr: c.typeKr, type: c.type }));
             }}
             className={`${field} pr-8`}
@@ -481,6 +473,52 @@ export default function PostEditor({ initial }: Props) {
           placeholder="네이버·구글 검색결과에 표시될 두세 문장"
           className={fieldMultiline}
         />
+      </div>
+
+      {/* 저장 영역. 오류는 버튼 바로 위에 띄워 눈에 걸리게 한다. */}
+      <div className="border-t border-border pt-6">
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg mb-4">
+            {error}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.status === "published"}
+              onChange={(e) =>
+                set("status", e.target.checked ? "published" : "draft")
+              }
+              className="w-4 h-4"
+            />
+            홈페이지에 공개
+          </label>
+
+          <span className="text-sm text-muted">
+            {saving
+              ? "저장 중..."
+              : savedAt
+                ? `저장됨 · ${savedAt}`
+                : dirty
+                  ? "저장되지 않음"
+                  : ""}
+          </span>
+
+          <button
+            onClick={() => save(form.status)}
+            disabled={saving}
+            className="ml-auto px-6 py-2.5 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            저장
+          </button>
+        </div>
+
+        <p className="text-sm text-muted mt-3">
+          저장한 내용은 목록 화면의 <strong className="text-foreground">사이트에 반영하기</strong> 를
+          눌러야 홈페이지에 나타납니다.
+        </p>
       </div>
     </div>
   );

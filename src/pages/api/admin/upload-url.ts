@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { randomUUID } from "node:crypto";
 import { IMAGE_BUCKET, serverClient } from "../../../lib/supabase";
-import { isSameOrigin, SESSION_COOKIE, verifySessionToken } from "../../../lib/auth";
+import { guard, json } from "../../../lib/apiGuard";
 
 export const prerender = false;
 
@@ -13,12 +13,6 @@ export const prerender = false;
  * 브라우저가 Storage 로 직접 PUT 하게 하면 그 제한과 무관해진다.
  */
 
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-
 const EXT_BY_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -28,12 +22,8 @@ const EXT_BY_TYPE: Record<string, string> = {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
-      return json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401);
-    }
-    if (!isSameOrigin(request)) {
-      return json({ error: "요청 출처를 확인할 수 없습니다." }, 403);
-    }
+    const denied = await guard(request, cookies);
+    if (denied) return denied;
 
     let input: any;
     try {

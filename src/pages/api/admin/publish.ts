@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { VERCEL_DEPLOY_HOOK_URL } from "astro:env/server";
-import { isSameOrigin, SESSION_COOKIE, verifySessionToken } from "../../../lib/auth";
+import { guard, json } from "../../../lib/apiGuard";
 
 export const prerender = false;
 
@@ -11,20 +11,10 @@ export const prerender = false;
  * 누구나 빌드를 무한히 유발할 수 있으므로, 반드시 서버에서만 호출하고
  * 응답에도 절대 포함시키지 않는다.
  */
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
-      return json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401);
-    }
-    if (!isSameOrigin(request)) {
-      return json({ error: "요청 출처를 확인할 수 없습니다." }, 403);
-    }
+    const denied = await guard(request, cookies);
+    if (denied) return denied;
     if (!VERCEL_DEPLOY_HOOK_URL) {
       return json({ error: "deploy_hook_not_configured" }, 503);
     }

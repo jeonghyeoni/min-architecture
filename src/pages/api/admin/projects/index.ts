@@ -1,36 +1,9 @@
 import type { APIRoute } from "astro";
 import { serverClient } from "../../../../lib/supabase";
 import { buildRow } from "../../../../lib/postInput";
-import { isSameOrigin, SESSION_COOKIE, verifySessionToken } from "../../../../lib/auth";
+import { guard, json } from "../../../../lib/apiGuard";
 
 export const prerender = false;
-
-export const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-
-/**
- * 미들웨어와 별개로 한 번 더 검증한다. UI 숨김은 인증이 아니다.
- * 통과하면 null, 막히면 응답을 돌려준다.
- */
-export async function guard(
-  request: Request,
-  cookies: any,
-  { requireJson = true } = {},
-): Promise<Response | null> {
-  if (!(await verifySessionToken(cookies.get(SESSION_COOKIE)?.value))) {
-    return json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401);
-  }
-  if (!isSameOrigin(request)) {
-    return json({ error: "요청 출처를 확인할 수 없습니다." }, 403);
-  }
-  if (requireJson && !request.headers.get("content-type")?.includes("application/json")) {
-    return json({ error: "잘못된 요청 형식입니다." }, 415);
-  }
-  return null;
-}
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   // 어떤 예외가 나도 JSON 으로 돌려준다. HTML 오류 페이지가 가면

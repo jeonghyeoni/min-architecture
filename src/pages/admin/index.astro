@@ -17,13 +17,29 @@ const published = projects.filter((p) => p.status === "published");
         전체 {projects.length}개 · 임시저장 {drafts.length}개
       </p>
     </div>
-    <a
-      href="/admin/new"
-      class="px-5 py-2.5 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90"
-    >
-      새 글 쓰기
-    </a>
+    <div class="flex items-center gap-2">
+      <button
+        id="deploy-btn"
+        class="px-5 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-card"
+      >
+        사이트에 반영하기
+      </button>
+      <a
+        href="/admin/new"
+        class="px-5 py-2.5 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90"
+      >
+        새 글 쓰기
+      </a>
+    </div>
   </div>
+
+  <!-- 저장(DB)과 배포(사이트 반영)를 분리해 둔 이유를 화면에 적어둔다.
+       글 여러 개를 고칠 때 배포가 매번 도는 것을 막기 위함이다. -->
+  <p class="text-sm text-muted mb-6 bg-card border border-border rounded-lg px-4 py-3">
+    글을 쓰거나 고친 뒤에는 <strong class="text-foreground">사이트에 반영하기</strong> 를 눌러야
+    홈페이지에 나타납니다. 여러 글을 한꺼번에 고쳤다면 마지막에 한 번만 누르시면 됩니다.
+    반영에는 2~3분 걸립니다.
+  </p>
 
   {projects.length === 0 && (
     <p class="text-muted bg-card border border-border rounded-lg px-5 py-10 text-center">
@@ -67,6 +83,34 @@ const published = projects.filter((p) => p.status === "published");
 </AdminLayout>
 
 <script>
+  const deployBtn = document.getElementById("deploy-btn") as HTMLButtonElement;
+  deployBtn?.addEventListener("click", async () => {
+    if (!confirm("지금까지 저장한 내용을 홈페이지에 반영합니다.\n2~3분 걸립니다.\n\n계속할까요?")) return;
+
+    deployBtn.disabled = true;
+    deployBtn.textContent = "반영 요청 중...";
+    try {
+      const res = await fetch("/api/admin/publish", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      if (res.ok) {
+        alert("반영을 시작했습니다.\n약 2~3분 뒤 홈페이지에 나타납니다.");
+      } else {
+        const b = await res.json().catch(() => ({}));
+        alert(
+          b.error === "deploy_hook_not_configured"
+            ? "자동 반영이 설정되지 않았습니다.\nVercel 에서 Deploy Hook 을 만들고 VERCEL_DEPLOY_HOOK_URL 환경변수에 넣어주세요."
+            : `반영 요청에 실패했습니다.\n${b.error ?? ""}`,
+        );
+      }
+    } finally {
+      deployBtn.disabled = false;
+      deployBtn.textContent = "사이트에 반영하기";
+    }
+  });
+
   document.querySelectorAll<HTMLButtonElement>("[data-delete]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.delete;
@@ -77,15 +121,11 @@ const published = projects.filter((p) => p.status === "published");
         headers: { "content-type": "application/json" },
       });
       if (!res.ok) {
-        alert("삭제에 실패했습니다.");
+        const b = await res.json().catch(() => ({}));
+        alert(`삭제에 실패했습니다.\n${b.error ?? ""}`);
         return;
       }
-      // 발행된 글이었다면 사이트에서도 내려가야 하므로 재배포를 건다.
-      await fetch("/api/admin/publish", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: "{}",
-      }).catch(() => {});
+      alert("삭제했습니다.\n홈페이지에서도 내리려면 '사이트에 반영하기' 를 눌러주세요.");
       location.reload();
     });
   });
