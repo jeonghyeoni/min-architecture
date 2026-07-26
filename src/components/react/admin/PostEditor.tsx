@@ -26,6 +26,8 @@ export interface PostInput {
   contentHtml: string;
   image: string | null;
   images: string[];
+  beforeImage: string | null;
+  afterImage: string | null;
   status: "draft" | "published";
 }
 
@@ -99,9 +101,52 @@ export default function PostEditor({ initial }: Props) {
   const idRef = useRef<number | undefined>(initial.id);
   const dirtyRef = useRef(false);
 
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+  const replaceIndexRef = useRef<number | null>(null);
+  const replaceRef = useRef<((i: number) => void) | null>(null);
+  replaceRef.current = (i: number) => {
+    replaceIndexRef.current = i;
+    replaceInputRef.current?.click();
+  };
+
   const set = <K extends keyof PostInput>(key: K, value: PostInput[K]) => {
     dirtyRef.current = true;
     setForm((f) => ({ ...f, [key]: value }));
+  };
+
+  /** 파일 하나를 올리고 URL 을 돌려준다. 실패 표시와 로딩 상태를 한 곳에서 처리한다. */
+  const upload = async (file: File): Promise<string | null> => {
+    setUploading(true);
+    setError(null);
+    try {
+      return await uploadImage(file, idRef.current);
+    } catch (e: any) {
+      setError(e.message ?? "이미지 업로드 실패");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const moveImage = (index: number, delta: number) => {
+    dirtyRef.current = true;
+    setForm((prev) => {
+      const next = [...prev.images];
+      const target = index + delta;
+      if (target < 0 || target >= next.length) return prev;
+      [next[index], next[target]] = [next[target], next[index]];
+      return { ...prev, images: next };
+    });
+  };
+
+  const removeImage = (index: number) => {
+    dirtyRef.current = true;
+    // Storage 파일은 지우지 않는다. 다른 글이나 본문에서 같은 주소를 쓰고 있을 수
+    // 있어서, 목록에서만 빼는 편이 안전하다.
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const insertImage = useCallback(
@@ -335,18 +380,59 @@ export default function PostEditor({ initial }: Props) {
         <label className="block text-sm font-medium mb-2">
           대표 사진 <span className="text-muted font-normal">· 목록과 공유 카드에 쓰입니다</span>
         </label>
-        {form.image && (
-          <img src={form.image} alt="" className="w-48 aspect-[4/3] object-cover rounded-lg mb-3" />
-        )}
+        <ImageSlot
+          url={form.image}
+          onPick={async (file) => set("image", await upload(file))}
+          onClear={() => set("image", null)}
+        />
+      </div>
+
+      {/* 갤러리 */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          갤러리 사진
+          <span className="text-muted font-normal"> · 상세 페이지에 순서대로 표시됩니다</span>
+        </label>
+        <p className="text-sm text-muted mb-3">
+          첫 번째 사진이 상세 페이지 맨 위 큰 사진으로 쓰입니다.
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
+          {form.images.map((url, i) => (
+            <div key={url + i} className="border border-border rounded-lg overflow-hidden bg-card">
+              <img src={url} alt="" className="w-full aspect-[4/3] object-cover" />
+              <div className="flex items-center justify-between px-1 py-1">
+                <div className="flex gap-0.5">
+                  <IconBtn label="앞으로" disabled={i === 0} onClick={() => moveImage(i, -1)}>←</IconBtn>
+                  <IconBtn label="뒤로" disabled={i === form.images.length - 1} onClick={() => moveImage(i, 1)}>→</IconBtn>
+                </div>
+                <div className="flex gap-0.5">
+                  <IconBtn label="교체" onClick={() => replaceRef.current?.(i)}>교체</IconBtn>
+                  <IconBtn label="삭제" danger onClick={() => removeImage(i)}>삭제</IconBtn>
+                </div>
+              </div>
+              {i === 0 && (
+                <p className="text-[11px] text-center text-muted pb-1">대표로 표시됨</p>
+              )}
+            </div>
+          ))}
+        </div>
+
         <input
           type="file"
           accept="image/*"
+          multiple
           onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+            const files = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            if (!files.length) return;
             setUploading(true);
+            setError(null);
             try {
-              set("image", await uploadImage(file, idRef.current));
+              const urls: string[] = [];
+              for (const f of files) urls.push(await uploadImage(f, idRef.current));
+              dirtyRef.current = true;
+              setForm((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
             } catch (err: any) {
               setError(err.message);
             } finally {
@@ -355,6 +441,71 @@ export default function PostEditor({ initial }: Props) {
           }}
           className="text-sm"
         />
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          ref={replaceInputRef}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            const idx = replaceIndexRef.current;
+            e.target.value = "";
+            if (!file || idx === null) return;
+            setUploading(true);
+            try {
+              const url = await uploadImage(file, idRef.current);
+              dirtyRef.current = true;
+              setForm((prev) => {
+                const next = [...prev.images];
+                next[idx] = url;
+                return { ...prev, images: next };
+              });
+            } catch (err: any) {
+              setError(err.message);
+            } finally {
+              setUploading(false);
+              replaceIndexRef.current = null;
+            }
+          }}
+        />
+      </div>
+
+      {/* 전 / 후 비교 */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          시공 전 · 후 사진
+          <span className="text-muted font-normal"> · 두 장 모두 있어야 비교 슬라이더가 나옵니다</span>
+        </label>
+        <div className="grid grid-cols-2 gap-4 max-w-lg">
+          <div>
+            <p className="text-sm text-muted mb-2">시공 전</p>
+            <ImageSlot
+              url={form.beforeImage}
+              onPick={async (file) => set("beforeImage", await upload(file))}
+              onClear={() => set("beforeImage", null)}
+            />
+          </div>
+          <div>
+            <p className="text-sm text-muted mb-2">시공 후</p>
+            <ImageSlot
+              url={form.afterImage}
+              onPick={async (file) => set("afterImage", await upload(file))}
+              onClear={() => set("afterImage", null)}
+            />
+          </div>
+        </div>
+        {(form.beforeImage || form.afterImage) && (
+          <button
+            type="button"
+            onClick={() => {
+              dirtyRef.current = true;
+              setForm((f) => ({ ...f, beforeImage: f.afterImage, afterImage: f.beforeImage }));
+            }}
+            className="mt-3 px-4 py-2 border border-border rounded-lg text-sm hover:bg-card"
+          >
+            ⇄ 전 · 후 서로 바꾸기
+          </button>
+        )}
       </div>
 
       {/* 본문 */}
@@ -382,6 +533,80 @@ export default function PostEditor({ initial }: Props) {
         />
       </div>
     </div>
+  );
+}
+
+/** 사진 한 칸. 없으면 선택 버튼, 있으면 미리보기 + 교체/삭제. */
+function ImageSlot({
+  url,
+  onPick,
+  onClear,
+}: {
+  url: string | null;
+  onPick: (file: File) => void;
+  onClear: () => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  return (
+    <div>
+      {url ? (
+        <div className="border border-border rounded-lg overflow-hidden bg-card w-full max-w-[220px]">
+          <img src={url} alt="" className="w-full aspect-[4/3] object-cover" />
+          <div className="flex justify-between px-1 py-1">
+            <IconBtn label="교체" onClick={() => ref.current?.click()}>교체</IconBtn>
+            <IconBtn label="삭제" danger onClick={onClear}>삭제</IconBtn>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="w-full max-w-[220px] aspect-[4/3] border-2 border-dashed border-border rounded-lg text-sm text-muted hover:border-foreground/40 hover:text-foreground"
+        >
+          + 사진 선택
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) onPick(f);
+        }}
+      />
+    </div>
+  );
+}
+
+function IconBtn({
+  children,
+  onClick,
+  disabled,
+  danger,
+  label,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={`px-2 py-1.5 text-xs rounded min-w-[36px] disabled:opacity-30 ${
+        danger ? "text-red-600 hover:bg-red-50" : "text-muted hover:bg-secondary"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
