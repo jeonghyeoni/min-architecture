@@ -52,6 +52,9 @@ const EXT_BY_MIME = {
   "image/webp": "webp", "image/gif": "gif", "image/avif": "avif",
 };
 
+/** 끝까지 실패한 이미지. 마지막에 모아서 보여준다. */
+const failedImages = [];
+
 /** 노션은 100건씩 끊어준다. 기존 getProjects() 는 이 루프가 없어 101번째부터 조용히 사라진다. */
 async function fetchAllPages() {
   const pages = [];
@@ -75,6 +78,32 @@ function fileUrl(prop) {
   return f.type === "file" ? f.file.url : f.external?.url ?? null;
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * 네트워크 작업 재시도.
+ *
+ * 사진이 큰 경우 업로드가 "fetch failed" 로 끊기는 일이 잦다. undici 가
+ * 소켓 단계에서 실패했을 때 나는 메시지라 원인이 드러나지 않는데,
+ * 대부분 일시적이라 몇 초 쉬었다 다시 하면 통과한다.
+ */
+async function withRetry(label, fn, attempts = 4) {
+  let lastError;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (i < attempts) {
+        const wait = 2000 * i;
+        console.warn(`     ${label} 실패 (${i}/${attempts}) — ${wait / 1000}초 뒤 재시도`);
+        await sleep(wait);
+      }
+    }
+  }
+  throw lastError;
+}
+
 /** 노션 서명 URL은 1시간이면 만료된다. 403 이면 해당 페이지만 다시 조회해 갱신한다. */
 async function downloadWithRefresh(url, pageId, resolve) {
   let res = await fetch(url);
@@ -93,17 +122,42 @@ async function upload(objectPath, buf, mime) {
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(objectPath, buf, { contentType: mime, upsert: true });
-  if (error) throw new Error(`업로드 실패 ${objectPath}: ${error.message}`);
+  if (error) throw new Error(error.message);
   return supabase.storage.from(BUCKET).getPublicUrl(objectPath).data.publicUrl;
+}
+
+/**
+ * 이미 올라가 있으면 건너뛴다.
+ * 재실행 시 성공한 사진을 다시 올리지 않아 실패분만 빠르게 복구할 수 있다.
+ */
+async function alreadyUploaded(objectPath) {
+  const dir = objectPath.slice(0, objectPath.lastIndexOf("/"));
+  const name = objectPath.slice(objectPath.lastIndexOf("/") + 1);
+  const { data } = await supabase.storage.from(BUCKET).list(dir, { search: name });
+  return data?.some((f) => f.name === name && (f.metadata?.size ?? 0) > 0) ?? false;
 }
 
 async function migrateImage(url, pageId, resolve, id, name) {
   if (!url) return null;
   try {
-    const { buf, mime } = await downloadWithRefresh(url, pageId, resolve);
+    const { buf, mime } = await withRetry(`${name} 내려받기`, () =>
+      downloadWithRefresh(url, pageId, resolve),
+    );
     const ext = EXT_BY_MIME[mime] ?? "jpg";
-    return await upload(`projects/${id}/${name}.${ext}`, buf, mime);
+    const objectPath = `projects/${id}/${name}.${ext}`;
+
+    if (await alreadyUploaded(objectPath)) {
+      return supabase.storage.from(BUCKET).getPublicUrl(objectPath).data.publicUrl;
+    }
+
+    const sizeMb = (buf.byteLength / 1024 / 1024).toFixed(1);
+    if (buf.byteLength > 8 * 1024 * 1024) {
+      console.log(`     ${name}: ${sizeMb}MB — 큰 파일이라 시간이 걸립니다`);
+    }
+
+    return await withRetry(`${name} 업로드`, () => upload(objectPath, buf, mime));
   } catch (e) {
+    failedImages.push({ id, name, reason: e.message });
     console.warn(`  ⚠️ 이미지 건너뜀 (${name}): ${e.message}`);
     return null;
   }
@@ -213,6 +267,22 @@ async function main() {
   console.log(`완료. 새 글은 ${maxId + 1}번부터 부여됩니다.`);
   console.log(`\n⚠️ Supabase SQL Editor 에서 아래를 한 번 실행해주세요:`);
   console.log(`   select setval('public.projects_id_seq', ${maxId});\n`);
+
+  if (failedImages.length) {
+    console.log(`⚠️ 사진 ${failedImages.length}장이 끝내 올라가지 않았습니다:\n`);
+    for (const f of failedImages) {
+      console.log(`   [${f.id}] ${f.name} — ${f.reason}`);
+    }
+    console.log(`
+   이 스크립트를 그대로 다시 실행하면 실패한 사진만 다시 시도합니다.
+   (이미 올라간 사진은 건너뛰므로 빠르게 끝납니다)
+
+   여러 번 시도해도 안 되면 그 사진만 관리자 화면에서 직접 올리셔도 됩니다.
+`);
+  } else {
+    console.log("사진까지 전부 정상적으로 옮겨졌습니다.\n");
+  }
+
   console.log(`이어서 검증: node --env-file=.env scripts/verify-migration.mjs`);
 }
 
