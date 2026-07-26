@@ -2,10 +2,47 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { ProjectsList } from "../../components/react/ProjectsList";
 import { getProjects } from "../../lib/notion"; // Notion 함수
+import {
+  absoluteUrl,
+  buildBreadcrumbSchema,
+  buildProjectTitle,
+} from "../../lib/seo";
 
 const projects = await getProjects(); // 데이터 가져오기
+
+const schemas = [
+  buildBreadcrumbSchema(
+    [
+      { name: "홈", path: "/" },
+      { name: "시공사례", path: "/projects" },
+    ],
+    Astro.site,
+  ),
+  // 목록 페이지 자체를 '시공사례 모음'으로 인식시킨다.
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "민건축 시공사례",
+    url: absoluteUrl("/projects", Astro.site),
+    inLanguage: "ko-KR",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: projects.length,
+      itemListElement: projects.map((project: any, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: buildProjectTitle(project),
+        url: absoluteUrl(`/projects/${project.id}`, Astro.site),
+      })),
+    },
+  },
+];
 ---
 
-<BaseLayout title="프로젝트 | 민건축">
+<BaseLayout
+  title="용인 처인구 시공사례 | 주택 건축·인테리어·리모델링 포트폴리오"
+  description="민건축이 경기도 용인시 처인구에서 직접 시공한 주택 건축, 인테리어, 증개축, 대수리, 방수, 집수리 사례를 공종별로 모았습니다. 전후 사진과 함께 실제 현장을 확인해보세요."
+  schemas={schemas}
+>
   <ProjectsList client:load projects={projects} />
 </BaseLayout>

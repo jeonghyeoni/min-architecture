@@ -1,4 +1,25 @@
+# 민건축 robots.txt
+# 네이버 웹수집 로봇(Yeti)은 User-agent 를 따로 명시해 주는 편이 수집 누락이 적다.
+
+User-agent: Yeti
+Allow: /
+Crawl-delay: 1
+
+User-agent: NaverBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
 User-agent: *
 Allow: /
+# 필터 파라미터는 canonical 로 /projects 를 가리키므로 수집 대상에서 제외한다.
+Disallow: /*?filter=
 
 Sitemap: https://min-architecture.vercel.app/sitemap-index.xml

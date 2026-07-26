@@ -1,8 +1,45 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { Contact as ContactForm } from "../components/react/Contact"; // 이름 충돌 방지를 위해 별칭 사용
+import { FAQS } from "../data/faq";
+import {
+  absoluteUrl,
+  BUSINESS,
+  buildBreadcrumbSchema,
+  buildFaqSchema,
+} from "../lib/seo";
+
+const schemas = [
+  buildBreadcrumbSchema(
+    [
+      { name: "홈", path: "/" },
+      { name: "문의하기", path: "/contact" },
+    ],
+    Astro.site,
+  ),
+  buildFaqSchema(FAQS),
+  // 연락 수단을 명시해 두면 검색결과에서 전화 연결로 바로 이어진다.
+  {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "민건축 상담·견적 문의",
+    url: absoluteUrl("/contact", Astro.site),
+    inLanguage: "ko-KR",
+    mainEntity: {
+      "@id": `${absoluteUrl("/", Astro.site)}#business`,
+      "@type": "GeneralContractor",
+      name: BUSINESS.name,
+      telephone: BUSINESS.phoneRaw,
+      email: BUSINESS.email,
+    },
+  },
+];
 ---
 
-<BaseLayout title="문의하기 | 민건축">
+<BaseLayout
+  title="용인 인테리어·집수리 상담 문의 | 처인구 무료 현장 견적"
+  description="용인시 처인구 주택 건축, 인테리어, 증개축, 방수, 집수리 상담을 받습니다. 전화 0507-1359-6512, 연중무휴. 현장 방문과 견적은 무료이며 처인구 전 지역 당일 방문이 가능합니다."
+  schemas={schemas}
+>
   <ContactForm />
 </BaseLayout>

@@ -1,16 +1,30 @@
+---
+import { BUSINESS, FULL_ADDRESS, SERVICE_AREAS, SERVICES } from '../lib/seo';
+---
+
 <footer class="border-t border-border bg-background">
   <div class="max-w-7xl mx-auto px-6 lg:px-12 py-16 md:py-20">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
-      
+
       <!-- Brand -->
       <div class="md:col-span-2">
         <h3 class="text-2xl font-semibold tracking-tight text-foreground mb-4">
-          민건축
+          {BUSINESS.name}
         </h3>
-        <p class="text-muted text-sm leading-relaxed max-w-sm">
+        <p class="text-muted text-sm leading-relaxed max-w-sm mb-6">
+          경기도 용인시 처인구 양지면의 종합 건축·인테리어 업체입니다.
           고객의 입장에서 생각하는 신뢰받는 업체가 되겠습니다.
           작은 일 하나에도 최선을 다합니다.
         </p>
+        <!-- 시공 지역을 본문에 노출해 지역 검색어와의 연관도를 만든다. -->
+        <div>
+          <h4 class="font-medium text-xs tracking-widest text-muted uppercase mb-3">
+            시공 지역
+          </h4>
+          <p class="text-muted text-sm leading-relaxed max-w-sm">
+            {SERVICE_AREAS.join(' · ')}
+          </p>
+        </div>
       </div>
 
       <!-- Contact -->
@@ -19,8 +33,27 @@
           상담 문의
         </h4>
         <div class="space-y-2">
-          <p class="text-foreground text-sm font-medium">0507-1359-6512</p>
-          <p class="text-muted text-sm">hello@minarchitecture.com</p>
+          <p>
+            <a
+              href={`tel:${BUSINESS.phone.replace(/-/g, '')}`}
+              class="text-foreground text-sm font-medium hover:text-muted transition-colors"
+            >
+              {BUSINESS.phone}
+            </a>
+          </p>
+          <p>
+            <a
+              href={`mailto:${BUSINESS.email}`}
+              class="text-muted text-sm hover:text-foreground transition-colors break-all"
+            >
+              {BUSINESS.email}
+            </a>
+          </p>
+          <p class="text-muted text-sm pt-2">
+            <a href="/contact" class="hover:text-foreground transition-colors">
+              견적 문의하기 →
+            </a>
+          </p>
         </div>
       </div>
 
@@ -29,23 +62,30 @@
         <h4 class="font-medium text-xs tracking-widest text-muted uppercase mb-4">
           서비스
         </h4>
-        <ul class="space-y-2 text-muted text-sm">
-          <li>주택 건축</li>
-          <li>인테리어</li>
-          <li>방수</li>
-          <li>증개축 · 대수리</li>
-          <li>부분수리 · 설비</li>
+        <!-- 공종별 목록을 링크로 걸어 시공사례 페이지로 내부 링크를 흘려보낸다. -->
+        <ul class="space-y-2 text-sm">
+          {SERVICES.map((service) => (
+            <li>
+              <a
+                href={`/projects?filter=${service.filter}`}
+                class="text-muted hover:text-foreground transition-colors"
+              >
+                {service.name}
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
 
     </div>
 
     <div class="mt-16 pt-8 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <!-- 주소와 상호는 네이버 플레이스 등록 정보와 동일하게 유지할 것 -->
+      <address class="text-muted-foreground text-sm not-italic">
+        {FULL_ADDRESS} | 대표 : {BUSINESS.founder}
+      </address>
       <p class="text-muted-foreground text-sm">
-        경기 용인시 처인구 양지면 용곡로 38-4 1호 | 대표 : 민관식
-      </p>
-      <p class="text-muted-foreground text-sm">
-        &copy; 민건축. All rights reserved.
+        &copy; {BUSINESS.name}. All rights reserved.
       </p>
     </div>
   </div>

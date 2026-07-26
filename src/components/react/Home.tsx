@@ -14,12 +14,33 @@ export function Home({ recentProjects }: HomeProps) {
     { number: "4", title: "완공", description: "마지막까지 책임지고 깨끗하게 마무리합니다." }
   ];
 
+  // 각 항목의 설명은 검색 유입을 노리는 실제 검색어를 자연스러운 문장으로 담는다.
   const services = [
-    { name: "주택 건축", filter: "NewBuild" },
-    { name: "인테리어", filter: "Interior" },
-    { name: "방수", filter: "Waterproofing" },
-    { name: "증개축 · 대수리", filter: "Extension" },
-    { name: "부분수리 · 설비", filter: "Repair" }
+    {
+      name: "주택 건축",
+      filter: "NewBuild",
+      description: "용인 처인구 단독주택·전원주택 신축, 설계와 인허가부터 준공까지"
+    },
+    {
+      name: "인테리어",
+      filter: "Interior",
+      description: "주방, 욕실, 도배, 바닥, 전체 리모델링까지 주택·상가 인테리어"
+    },
+    {
+      name: "방수",
+      filter: "Waterproofing",
+      description: "옥상 방수, 우레탄 방수, 누수 탐지와 보수 공사"
+    },
+    {
+      name: "증개축 · 대수리",
+      filter: "Extension",
+      description: "노후 주택 증축과 개축, 대수선 구조 검토와 건축 신고"
+    },
+    {
+      name: "부분수리 · 설비",
+      filter: "Repair",
+      description: "보일러, 배관, 창호 등 용인 집수리와 설비 공사"
+    }
   ];
 
   const featuredProjects = recentProjects || [];
@@ -31,22 +52,29 @@ export function Home({ recentProjects }: HomeProps) {
       <section className="relative min-h-screen flex items-center justify-center">
         {/* Background Image with Blur */}
         <div className="absolute inset-0 overflow-hidden">
-          <img 
+          <img
             src={heroImage}
-            alt=""
+            alt="용인시 처인구 주택 건축·인테리어 전문 민건축 시공 현장"
+            fetchPriority="high"
             className="w-full h-full object-cover scale-110 blur-sm"
           />
           <div className="absolute inset-0 bg-foreground/40" />
         </div>
-        
+
         {/* Content */}
+        {/* h1에 지역+공종 키워드를 담고, 슬로건은 h1 안에서 시각적으로 크게 처리한다. */}
         <div className="relative z-10 text-center max-w-4xl px-6 py-20">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold text-background mb-8 tracking-tight text-balance leading-[1.1]">
-            작은 일 하나에도<br />
-            <span className="text-background/80">최선을 다합니다</span>
+          <h1 className="text-background mb-8 tracking-tight text-balance">
+            <span className="block text-base md:text-lg font-medium text-background/90 mb-5 tracking-normal">
+              용인시 처인구 주택 건축 · 인테리어 · 리모델링 전문 민건축
+            </span>
+            <span className="block text-5xl md:text-7xl lg:text-8xl font-semibold leading-[1.1]">
+              작은 일 하나에도<br />
+              <span className="text-background/80">최선을 다합니다</span>
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-background/80 max-w-2xl mx-auto leading-relaxed mb-12">
-            용인시 처인구에서 주택 건축, 인테리어, 설비,<br className="hidden md:block" />
+            용인시 처인구 전 지역에서 주택 건축, 인테리어, 설비,<br className="hidden md:block" />
             증개축, 대수리, 부분수리, 방수를 전문으로 합니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -74,7 +102,7 @@ export function Home({ recentProjects }: HomeProps) {
             <div>
               <p className="text-sm tracking-widest text-muted uppercase mb-4 font-medium">Projects</p>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground leading-tight">
-                최근 프로젝트
+                용인 처인구 최근 시공사례
               </h2>
             </div>
             <a 
@@ -93,9 +121,10 @@ export function Home({ recentProjects }: HomeProps) {
                 className="group"
               >
                 <div className="aspect-[4/5] bg-card mb-6 overflow-hidden">
-                  <img 
+                  <img
                     src={project.image}
-                    alt={project.title}
+                    alt={`${project.location || '용인 처인구'} ${project.typeKr} 시공사례 - ${project.title}`}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
                 </div>
@@ -143,9 +172,10 @@ export function Home({ recentProjects }: HomeProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div className="order-2 lg:order-1">
               <div className="aspect-[4/5] overflow-hidden">
-                <img 
+                <img
                   src="https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20241104_3%2F17306895281458kUco_JPEG%2F%25B9%25CE%25B0%25C7%25C3%25E02.jpg"
-                  alt="민건축 작업 현장"
+                  alt="용인시 처인구 양지면 민건축 대표 민관식의 주택 건축 작업 현장"
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -157,10 +187,13 @@ export function Home({ recentProjects }: HomeProps) {
               </h2>
               <div className="space-y-5 text-muted leading-relaxed mb-10">
                 <p>
-                  15년 이상의 주거 및 상업 건축 경험을 바탕으로, 
+                  민건축은 경기도 용인시 처인구 양지면에 자리한 종합 건축·인테리어 업체입니다.
+                  15년 이상의 주거 및 상업 건축 경험을 바탕으로,
                   최상의 시공과 디테일에 대한 관심으로 고객의 비전을 실현합니다.
                 </p>
                 <p>
+                  양지면, 포곡읍, 모현읍, 이동읍, 남사읍, 백암면, 원삼면 등
+                  용인 처인구 전 지역에 직접 방문해 현장을 확인하고 견적을 내드립니다.
                   합리적인 비용으로 안전하고 효율적인 시공을 진행하며,
                   무엇보다 고객 만족을 최우선으로 생각합니다.
                 </p>
@@ -184,18 +217,21 @@ export function Home({ recentProjects }: HomeProps) {
             <div>
               <p className="text-sm tracking-widest text-muted uppercase mb-4 font-medium">Services</p>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground leading-tight text-balance">
-                전문 분야
+                용인 처인구 시공 전문 분야
               </h2>
             </div>
             <div className="flex flex-col">
               {services.map((service) => (
-                <a 
+                <a
                   key={service.name}
                   href={`/projects?filter=${service.filter}`}
-                  className="group flex items-center justify-between py-6 border-b border-border hover:pl-4 transition-all"
+                  className="group flex items-start justify-between gap-6 py-6 border-b border-border hover:pl-4 transition-all"
                 >
-                  <span className="text-xl md:text-2xl font-medium text-foreground">{service.name}</span>
-                  <ArrowUpRight className="w-5 h-5 text-muted group-hover:text-foreground transition-colors" />
+                  <span className="flex flex-col gap-1.5">
+                    <span className="text-xl md:text-2xl font-medium text-foreground">{service.name}</span>
+                    <span className="text-[15px] text-muted leading-relaxed">{service.description}</span>
+                  </span>
+                  <ArrowUpRight className="w-5 h-5 shrink-0 mt-2 text-muted group-hover:text-foreground transition-colors" />
                 </a>
               ))}
             </div>

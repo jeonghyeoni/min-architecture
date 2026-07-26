@@ -2,12 +2,19 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { Home } from "../components/react/Home";
 import { getProjects } from "../lib/notion"; // Notion 함수
+import { DEFAULT_DESCRIPTION, buildBreadcrumbSchema } from "../lib/seo";
 
 // Notion에서 데이터 가져와서 최신 3개만 자르기
 const allProjects = await getProjects();
 const recentProjects = allProjects.slice(0, 3);
+
+const schemas = [buildBreadcrumbSchema([{ name: "홈", path: "/" }], Astro.site)];
 ---
 
-<BaseLayout>
+<BaseLayout
+  title="민건축 | 용인 처인구 주택 건축·인테리어·리모델링 전문"
+  description={DEFAULT_DESCRIPTION}
+  schemas={schemas}
+>
   <Home client:load recentProjects={recentProjects} />
 </BaseLayout>

@@ -63,9 +63,12 @@ export function ProjectsList({ projects }: ProjectsListProps) {
     <div className="py-24 px-6 lg:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">프로젝트</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            용인 처인구 시공사례
+          </h1>
           <p className="text-lg text-gray-600 max-w-2xl leading-relaxed">
-            민건축의 주요 작업들을 소개합니다.
+            민건축이 경기도 용인시 처인구에서 직접 시공한 주택 건축, 인테리어,
+            증개축·대수리, 방수, 부분수리 작업을 공종별로 모았습니다.
           </p>
         </div>
 
@@ -93,9 +96,10 @@ export function ProjectsList({ projects }: ProjectsListProps) {
               className="group block"
             >
               <div className="aspect-[4/5] bg-gray-100 mb-6 overflow-hidden">
-                <img 
+                <img
                   src={project.image}
-                  alt={project.title}
+                  alt={`${project.location || '용인 처인구'} ${project.typeKr} 시공사례 - ${project.title}`}
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>

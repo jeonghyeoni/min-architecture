@@ -62,9 +62,10 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
       <section className="px-6 lg:px-12 mb-24">
         <div className="max-w-7xl mx-auto">
           <div className="aspect-[16/9] bg-gray-100">
-            <img 
+            <img
               src={mainImage}
-              alt={project.title}
+              alt={`${project.location || '용인 처인구'} ${project.typeKr} 시공사례 - ${project.title}`}
+              fetchPriority="high"
               className="w-full h-full object-cover"
             />
           </div>
@@ -99,9 +100,10 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
               {/* slice(1)을 다시 추가해서 첫 번째(메인) 사진은 갤러리에서 뺌 */}
               {galleryImages.slice(1).map((image, index) => (
                 <div key={index} className="bg-gray-100">
-                  <img 
+                  <img
                     src={image}
-                    alt={`${project.title} 디테일 ${index + 1}`}
+                    alt={`${project.location || '용인 처인구'} ${project.typeKr} - ${project.title} 시공 사진 ${index + 1}`}
+                    loading="lazy"
                     className="w-full h-auto"
                   />
                 </div>
@@ -120,9 +122,10 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
             <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden select-none group">
               {/* Before Image (Base) */}
               <div className="absolute inset-0">
-                <img 
+                <img
                   src={project.beforeImage}
-                  alt="전"
+                  alt={`${project.title} ${project.typeKr} 시공 전 모습`}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -132,9 +135,10 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
                 className="absolute inset-0"
                 style={{ clipPath: `inset(0 ${100 - beforeAfterSlider}% 0 0)` }}
               >
-                <img 
+                <img
                   src={project.afterImage}
-                  alt="후"
+                  alt={`${project.title} ${project.typeKr} 시공 후 완성 모습`}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>

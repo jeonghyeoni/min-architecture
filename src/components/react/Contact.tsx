@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { FAQS } from '../../data/faq';
 
 export function Contact() {
   return (
@@ -6,8 +7,14 @@ export function Contact() {
       {/* Hero Section */}
       <section className="py-24 px-6 lg:px-12 border-b border-gray-200">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            함께 고민하겠습니다
+          {/* h1에 '용인 처인구 + 상담/견적' 검색 의도를 그대로 담는다. */}
+          <h1 className="text-gray-900 mb-6 leading-tight">
+            <span className="block text-base md:text-lg font-medium text-gray-500 mb-4">
+              용인 처인구 주택 건축 · 인테리어 · 집수리 상담
+            </span>
+            <span className="block text-5xl md:text-6xl font-bold">
+              함께 고민하겠습니다
+            </span>
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
             주택 건축부터 인테리어, 증개축, 대수리, 작은 부분수리까지<br />
@@ -84,10 +91,15 @@ export function Contact() {
               <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
                 <MapPin className="w-5 h-5 text-gray-600" />
               </div>
+              {/* 주소 표기는 네이버 플레이스 등록 정보와 글자까지 동일해야 한다.
+                  같은 업체로 묶여야 지역 검색 신뢰도가 올라간다. */}
               <div>
-                <p className="text-sm text-gray-500 mb-1 font-medium">지역</p>
+                <p className="text-sm text-gray-500 mb-1 font-medium">주소</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  경기도 용인시 처인구
+                  경기도 용인시 처인구 양지면 용곡로 38-4 1호
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  용인 처인구 전 지역 현장 방문 · 기흥구/수지구 상담 가능
                 </p>
               </div>
             </div>
@@ -140,46 +152,24 @@ export function Contact() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-16">
             <p className="text-sm tracking-wider text-gray-500 mb-3 font-medium">자주 묻는 질문</p>
-            <h2 className="text-4xl font-bold text-gray-900">FAQ</h2>
+            <h2 className="text-4xl font-bold text-gray-900">
+              용인 인테리어·집수리 자주 묻는 질문
+            </h2>
           </div>
+          {/* 화면과 FAQPage 구조화 데이터가 어긋나면 검색엔진이 무시하므로
+              양쪽 모두 src/data/faq.ts 한 곳만 바라보게 한다. */}
           <div className="space-y-8">
-            <div className="border-b border-gray-200 pb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                어떤 작업을 하시나요?
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                주택 건축, 인테리어, 설비, 증개축, 대수리, 부분수리, 방수 등 
-                주거 공간과 관련된 모든 작업을 진행합니다. 
-                큰 공사부터 작은 수리까지 고객님의 상황에 맞춰 최선을 다합니다.
-              </p>
-            </div>
-            <div className="border-b border-gray-200 pb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                공사 기간은 얼마나 걸리나요?
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                작업 규모에 따라 다릅니다. 
-                부분수리는 며칠에서 1-2주, 증개축은 보통 2-3개월, 
-                신축은 6개월 이상 소요됩니다. 정확한 일정은 현장 확인 후 안내드립니다.
-              </p>
-            </div>
-            <div className="border-b border-gray-200 pb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                허가나 인허가도 도와주시나요?
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                네, 건축 허가와 각종 인허가 업무도 함께 진행해드립니다. 
-                복잡한 행정 절차는 저희가 처리하니 편하게 맡겨주세요.
-              </p>
-            </div>
-            <div className="pb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                어느 지역에서 작업하시나요?
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                경기도 용인시 처인구 전 지역 방문 가능합니다.
-              </p>
-            </div>
+            {FAQS.map((faq, index) => (
+              <div
+                key={faq.question}
+                className={index === FAQS.length - 1 ? 'pb-8' : 'border-b border-gray-200 pb-8'}
+              >
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {faq.question}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -2,26 +2,135 @@
 import "../styles/global.css";
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
+import {
+  BUSINESS,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_KEYWORDS,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_TITLE,
+  absoluteUrl,
+  buildLocalBusinessSchema,
+  buildWebSiteSchema,
+} from '../lib/seo';
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  /** 정규 주소를 직접 지정할 때만 사용. 기본값은 현재 경로. */
+  canonical?: string;
+  noindex?: boolean;
+  /** 이 페이지에서만 추가로 넣을 구조화 데이터 (빵부스러기, FAQ, 시공사례 등) */
+  schemas?: Record<string, unknown>[];
+}
+
+const {
+  title,
+  description = DEFAULT_DESCRIPTION,
+  keywords = DEFAULT_KEYWORDS,
+  ogImage = DEFAULT_OG_IMAGE,
+  ogType = 'website',
+  canonical,
+  noindex = false,
+  schemas = [],
+} = Astro.props;
+
+const site = Astro.site ?? absoluteUrl('/');
+
+// 각 페이지가 넘긴 제목 뒤에 상호를 붙인다. 중복 붙임은 막는다.
+const pageTitle = title
+  ? title.includes(BUSINESS.name)
+    ? title
+    : `${title} | ${BUSINESS.name}`
+  : DEFAULT_TITLE;
+
+// 정규 주소는 쿼리스트링을 뺀 경로 기준. /projects?filter=... 가 중복 페이지로
+// 잡히면 색인이 분산되므로 반드시 필요하다. 루트를 뺀 나머지는 끝 슬래시를 제거.
+const canonicalPath = canonical ?? Astro.url.pathname;
+const normalizedPath =
+  canonicalPath === '/' ? '/' : canonicalPath.replace(/\/+$/, '');
+const canonicalUrl = absoluteUrl(normalizedPath, site);
+
+const ogImageUrl = absoluteUrl(ogImage, site);
+
+// 업체 정보와 사이트 정보는 전 페이지 공통으로 깔아둔다.
+const globalSchemas = [buildLocalBusinessSchema(site), buildWebSiteSchema(site)];
+const allSchemas = [...globalSchemas, ...schemas];
 ---
 
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <slot name="head" />
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title> 민건축 | 용인 처인구 주택 건축, 인테리어, 리모델링 전문</title>
-    <meta name="description" content="용인시 처인구 전지역 시공 가능. 주택 신축, 증개축, 대수리, 인테리어, 설비, 방수 전문 민건축 포트폴리오입니다. 꼼꼼한 시공과 합리적인 견적을 약속드립니다." />
-    <meta name="keywords" content="민건축, 민건축 포트폴리오, 용인 인테리어, 용인 집수리, 용인 리모델링, 처인구 주택 건축,  처인구 인테리어" />
-    <meta property="og:title" content="민건축 - 용인시 처인구 주택 건축 & 인테리어" />
-    <meta property="og:description" content="용인 처인구 건축, 인테리어 전문. 포트폴리오를 확인해보세요." />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords.join(', ')} />
+    <link rel="canonical" href={canonicalUrl} />
+    {noindex
+      ? <meta name="robots" content="noindex, nofollow" />
+      : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+
+    <!-- 네이버 웹수집(Yeti)은 별도 로봇 지시문을 읽는다 -->
+    <meta name="NaverBot" content={noindex ? 'noindex, nofollow' : 'All'} />
+    <meta name="Yeti" content={noindex ? 'noindex, nofollow' : 'All'} />
+
+    <meta name="author" content={BUSINESS.name} />
+    <meta name="subject" content="용인시 처인구 주택 건축·인테리어·리모델링" />
+
+    <!-- 지역 정보. 네이버 로컬 검색이 지역 연관도를 잡는 신호 -->
+    <meta name="geo.region" content="KR-41" />
+    <meta name="geo.placename" content={`${BUSINESS.region} ${BUSINESS.locality}`} />
+    <meta name="geo.position" content={`${BUSINESS.latitude};${BUSINESS.longitude}`} />
+    <meta name="ICBM" content={`${BUSINESS.latitude}, ${BUSINESS.longitude}`} />
+
+    <!-- 오픈그래프: 네이버 블로그·카페·밴드·카카오톡 공유 시 카드 미리보기 -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={BUSINESS.name} />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={pageTitle} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
     <meta name="naver-site-verification" content="a8ae03a75bb265a4017d04a465097e631e53b998" />
     <meta name="google-site-verification" content="HplPACi14VV8baIVFNG-mBNQkeYEbq2XcOyAp1Tx7tw" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+
+    {allSchemas.map((schema) => (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(schema)}
+      />
+    ))}
   </head>
   <body>
     <Navigation />
-    <slot />
+    <main>
+      <slot />
+    </main>
     <Footer />
   </body>
 </html>

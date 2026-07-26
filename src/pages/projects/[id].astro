@@ -2,13 +2,19 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { ProjectDetail } from "../../components/react/ProjectDetail";
 import { getProjects } from "../../lib/notion";
+import {
+  buildBreadcrumbSchema,
+  buildProjectDescription,
+  buildProjectSchema,
+  buildProjectTitle,
+} from "../../lib/seo";
 
 export async function getStaticPaths() {
   const projects = await getProjects();
 
   return projects.map((project: any, index: number) => ({
     params: { id: project.id.toString() },
-    props: { 
+    props: {
       project,
       prevProject: index > 0 ? projects[index - 1] : null,
       nextProject: index < projects.length - 1 ? projects[index + 1] : null
@@ -17,13 +23,44 @@ export async function getStaticPaths() {
 }
 
 const { project, prevProject, nextProject } = Astro.props;
+
+// 제목과 설명은 "지역 + 공종 + 시공사례" 조합으로 자동 생성한다.
+// 시공사례가 늘어날수록 롱테일 키워드가 같이 늘어나는 구조.
+const title = buildProjectTitle(project);
+const description = buildProjectDescription(project);
+
+const schemas = [
+  buildBreadcrumbSchema(
+    [
+      { name: "홈", path: "/" },
+      { name: "시공사례", path: "/projects" },
+      { name: project.title, path: `/projects/${project.id}` },
+    ],
+    Astro.site,
+  ),
+  buildProjectSchema(project, Astro.site),
+];
 ---
 
-<BaseLayout title={`${project.title} | 민건축`}>
-  <ProjectDetail 
-    client:load 
-    project={project} 
-    prevProject={prevProject} 
-    nextProject={nextProject} 
+<BaseLayout
+  title={title}
+  description={description}
+  ogType="article"
+  ogImage={project.image || undefined}
+  keywords={[
+    project.title,
+    `용인 ${project.typeKr}`,
+    `처인구 ${project.typeKr}`,
+    project.location ? `${project.location} ${project.typeKr}` : "용인 시공사례",
+    `${project.typeKr} 시공사례`,
+    "민건축",
+  ]}
+  schemas={schemas}
+>
+  <ProjectDetail
+    client:load
+    project={project}
+    prevProject={prevProject}
+    nextProject={nextProject}
   />
 </BaseLayout>
