@@ -1,5 +1,6 @@
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Phone, MapPin } from 'lucide-react';
 import { FAQS } from '../../data/faq';
+import { NAVER_PLACE_URL } from '../../lib/seo';
 
 export function Contact() {
   return (
@@ -10,7 +11,7 @@ export function Contact() {
           {/* h1에 '용인 처인구 + 상담/견적' 검색 의도를 그대로 담는다. */}
           <h1 className="text-gray-900 mb-6 leading-tight">
             <span className="block text-base md:text-lg font-medium text-gray-500 mb-4">
-              용인 처인구 주택 건축 · 인테리어 · 집수리 상담
+              용인 처인구 리모델링 · 집수리 상담
             </span>
             <span className="block text-5xl md:text-6xl font-bold">
               함께 고민하겠습니다
@@ -69,20 +70,22 @@ export function Contact() {
               </div>
             </div>
 
-            {/* 이메일 */}
+            {/* 네이버 플레이스 - 사이트와 플레이스를 서로 연결해 같은 업체로 묶는다 */}
             <div className="flex gap-4 justify-center text-left items-start">
               <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
-                <Mail className="w-5 h-5 text-gray-600" />
+                <MapPin className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1 font-medium">이메일</p>
-                <a 
-                  href="mailto:hello@minarchitecture.com"
-                  className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors break-all"
+                <p className="text-sm text-gray-500 mb-1 font-medium">네이버 플레이스</p>
+                <a
+                  href={NAVER_PLACE_URL}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors"
                 >
-                  hello@minarchitecture.com
+                  민건축 플레이스 바로가기
                 </a>
-                <p className="text-sm text-gray-500 mt-1">24시간 내 답변</p>
+                <p className="text-sm text-gray-500 mt-1">길찾기 · 리뷰 확인</p>
               </div>
             </div>
 

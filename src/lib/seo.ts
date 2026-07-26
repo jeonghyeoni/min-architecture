@@ -7,7 +7,22 @@
  * 여기 값을 고칠 때는 네이버 플레이스 등록 정보와 반드시 똑같이 맞출 것.
  */
 
-export const SITE_URL = "https://min-architecture.vercel.app";
+/**
+ * 도메인은 한글 도메인 "민건축.com" 이다.
+ * 한글 도메인은 IDN 이라 실제 URL 로는 Punycode 형태로 변환해서 써야 한다.
+ * canonical, og:url, 사이트맵은 전부 이 ASCII 형태로 통일한다.
+ * (한글 그대로 쓰면 크롤러·메신저마다 인코딩이 달라져 다른 주소로 갈린다)
+ *
+ *   민건축.com  →  xn--z69an80agjn.com
+ */
+export const SITE_URL = "https://xn--z69an80agjn.com";
+
+/** 사람에게 보여줄 때만 쓰는 한글 도메인. 링크의 href 에는 쓰지 말 것. */
+export const DISPLAY_DOMAIN = "민건축.com";
+
+/** 네이버 플레이스. 사이트와 플레이스를 같은 업체로 묶는 핵심 연결고리. */
+export const NAVER_PLACE_URL =
+  "https://m.place.naver.com/place/1995142539/home";
 
 export const BUSINESS = {
   name: "민건축",
@@ -15,7 +30,7 @@ export const BUSINESS = {
   founder: "민관식",
   phone: "0507-1359-6512",
   phoneRaw: "+82-507-1359-6512",
-  email: "hello@minarchitecture.com",
+  businessNumber: "460-37-00630",
   street: "양지면 용곡로 38-4 1호",
   locality: "용인시 처인구",
   region: "경기도",
@@ -45,62 +60,128 @@ export const SERVICE_AREAS = [
   "용인시 수지구",
 ];
 
+/**
+ * 공종별 정보.
+ *
+ * slug 는 /services/<slug> 주소가 된다. 목표 키워드마다 색인 가능한 페이지를
+ * 하나씩 두기 위한 것으로, 필터 주소(/projects?filter=)는 canonical 로
+ * /projects 에 합쳐지고 robots.txt 에서도 제외되므로 검색 유입을 받지 못한다.
+ *
+ * title/heading 에는 목표 키워드(용인 리모델링, 처인구 집수리 등)를 그대로 담는다.
+ */
 export const SERVICES = [
   {
-    name: "주택 건축",
-    filter: "NewBuild",
-    keyword: "용인 주택 건축",
-    description:
-      "용인시 처인구 단독주택·전원주택 신축. 설계부터 인허가, 준공까지 전 과정을 진행합니다.",
-  },
-  {
-    name: "인테리어",
+    name: "인테리어 · 리모델링",
+    slug: "remodeling",
     filter: "Interior",
-    keyword: "용인 인테리어",
+    keyword: "용인 리모델링",
+    heading: "용인 처인구 리모델링 · 인테리어",
+    title: "용인 리모델링 | 처인구 주택 인테리어 시공 - 민건축",
     description:
-      "용인 처인구 주택·상가 인테리어 시공. 주방, 욕실, 도배, 바닥, 전체 리모델링을 맡습니다.",
-  },
-  {
-    name: "방수",
-    filter: "Waterproofing",
-    keyword: "용인 방수 공사",
-    description:
-      "옥상 방수, 우레탄 방수, 누수 탐지 및 보수. 원인을 먼저 잡고 시공합니다.",
-  },
-  {
-    name: "증개축 · 대수리",
-    filter: "Extension",
-    keyword: "용인 증축 리모델링",
-    description:
-      "노후 주택 증축, 개축, 대수선. 구조 검토와 건축 인허가를 함께 처리합니다.",
+      "용인시 처인구 주택·상가 리모델링과 인테리어 시공. 주방, 욕실, 도배, 바닥, 전체 리모델링까지 맡습니다.",
+    includes: [
+      "주방 · 욕실 리모델링",
+      "도배 · 장판 · 바닥재",
+      "샷시 · 창호 교체",
+      "전체 올수리 리모델링",
+      "상가 · 사무실 인테리어",
+    ],
   },
   {
     name: "부분수리 · 설비",
+    slug: "repair",
     filter: "Repair",
     keyword: "용인 집수리",
+    heading: "용인 처인구 집수리 · 설비",
+    title: "용인 집수리 | 처인구 누수·보일러·설비 수리 - 민건축",
     description:
-      "보일러, 배관, 누수, 창호 등 생활 밀착 집수리와 설비 공사. 작은 공사도 받습니다.",
+      "용인시 처인구 집수리 전문. 누수, 보일러, 배관, 창호 등 작은 수리부터 설비 공사까지 당일 방문 상담이 가능합니다.",
+    includes: [
+      "누수 탐지 · 보수",
+      "보일러 · 난방 배관",
+      "상하수도 배관 공사",
+      "창호 · 문 수리 교체",
+      "전기 · 조명 설비",
+    ],
+  },
+  {
+    name: "증개축 · 대수리",
+    slug: "extension",
+    filter: "Extension",
+    keyword: "용인 증축",
+    heading: "용인 처인구 증축 · 개축 · 대수선",
+    title: "용인 증축·대수선 | 처인구 노후주택 리모델링 - 민건축",
+    description:
+      "용인시 처인구 노후 주택 증축, 개축, 대수선. 구조 검토부터 건축 인허가까지 함께 처리합니다.",
+    includes: [
+      "단독주택 증축 · 개축",
+      "대수선 구조 보강",
+      "건축 인허가 대행",
+      "시골집 · 구옥 전체 수리",
+      "단열 · 지붕 개선",
+    ],
+  },
+  {
+    name: "방수",
+    slug: "waterproofing",
+    filter: "Waterproofing",
+    keyword: "용인 방수",
+    heading: "용인 처인구 방수 공사",
+    title: "용인 방수공사 | 처인구 옥상·누수 방수 시공 - 민건축",
+    description:
+      "용인시 처인구 옥상 방수, 우레탄 방수, 누수 탐지 및 보수. 원인을 먼저 잡고 시공합니다.",
+    includes: [
+      "옥상 · 지붕 방수",
+      "우레탄 · 시트 방수",
+      "욕실 · 베란다 방수",
+      "누수 원인 탐지",
+      "외벽 크랙 보수",
+    ],
+  },
+  {
+    name: "주택 건축",
+    slug: "newbuild",
+    filter: "NewBuild",
+    keyword: "용인 주택 건축",
+    heading: "용인 처인구 단독주택 · 전원주택 신축",
+    title: "용인 주택건축 | 처인구 단독·전원주택 신축 - 민건축",
+    description:
+      "용인시 처인구 단독주택·전원주택 신축. 설계부터 인허가, 시공, 준공까지 전 과정을 진행합니다.",
+    includes: [
+      "단독주택 · 전원주택 신축",
+      "설계 · 건축 인허가",
+      "토목 · 기초 공사",
+      "준공 검사 · 등기",
+      "조경 · 외부 공간",
+    ],
   },
 ] as const;
 
-/** 사이트 전역 기본 메타. 페이지에서 넘기지 않으면 이 값이 쓰인다. */
+/**
+ * 사이트 전역 기본 메타. 페이지에서 넘기지 않으면 이 값이 쓰인다.
+ *
+ * 목표 키워드 우선순위: 민건축(브랜드) > 용인/처인구 리모델링 > 용인/처인구 집수리.
+ * 제목 앞쪽에 올수록 가중치가 높으므로 순서를 함부로 바꾸지 말 것.
+ */
 export const DEFAULT_TITLE =
-  "민건축 | 용인 처인구 주택 건축·인테리어·리모델링 전문";
+  "민건축 | 용인 처인구 리모델링·집수리 전문";
 export const DEFAULT_DESCRIPTION =
-  "경기도 용인시 처인구 주택 건축, 인테리어, 증개축, 대수리, 방수, 집수리 전문 민건축입니다. 처인구 전 지역 현장 방문 견적, 15년 경력의 꼼꼼한 시공을 약속드립니다. 상담 0507-1359-6512.";
+  "경기도 용인시 처인구 리모델링, 집수리 전문 민건축입니다. 주택 인테리어, 증개축, 대수선, 방수, 누수 보수, 주택 신축까지 처인구 전 지역 현장 방문 견적. 15년 경력의 꼼꼼한 시공을 약속드립니다. 상담 0507-1359-6512.";
 export const DEFAULT_KEYWORDS = [
   "민건축",
-  "용인 인테리어",
   "용인 리모델링",
-  "용인 주택 건축",
-  "처인구 인테리어",
-  "처인구 주택 건축",
+  "처인구 리모델링",
   "용인 집수리",
-  "용인 방수",
-  "양지면 인테리어",
+  "처인구 집수리",
+  "용인 인테리어",
+  "처인구 인테리어",
+  "양지면 리모델링",
+  "용인 주택 리모델링",
   "용인 증축",
   "용인 대수선",
-  "용인 인테리어 업체",
+  "용인 방수",
+  "용인 주택 건축",
+  "용인 리모델링 업체",
 ];
 
 export const DEFAULT_OG_IMAGE = "/og-image.jpg";
@@ -130,8 +211,17 @@ export function buildLocalBusinessSchema(site?: URL | string): JsonLd {
     image: absoluteUrl(DEFAULT_OG_IMAGE, site),
     description: DEFAULT_DESCRIPTION,
     telephone: BUSINESS.phoneRaw,
-    email: BUSINESS.email,
     founder: { "@type": "Person", name: BUSINESS.founder },
+    // 사업자등록번호는 네이버가 보는 사이트 공신력에 직접 작용한다.
+    taxID: BUSINESS.businessNumber,
+    identifier: {
+      "@type": "PropertyValue",
+      name: "사업자등록번호",
+      value: BUSINESS.businessNumber,
+    },
+    // 네이버 플레이스와 같은 업체임을 명시한다. 지역 검색 신뢰도의 핵심.
+    sameAs: [NAVER_PLACE_URL],
+    hasMap: NAVER_PLACE_URL,
     priceRange: BUSINESS.priceRange,
     currenciesAccepted: "KRW",
     address: {

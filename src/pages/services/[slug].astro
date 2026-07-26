@@ -1,0 +1,196 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getProjects } from "../../lib/notion";
+import {
+  BUSINESS,
+  SERVICES,
+  SERVICE_AREAS,
+  absoluteUrl,
+  buildBreadcrumbSchema,
+  buildProjectImageAlt,
+} from "../../lib/seo";
+
+/**
+ * 공종별 랜딩 페이지.
+ *
+ * 필터 주소(/projects?filter=)는 canonical 로 /projects 에 합쳐지고 robots.txt
+ * 에서도 제외되기 때문에 검색 유입을 전혀 받지 못한다. 목표 키워드마다
+ * 색인 가능한 실제 페이지가 필요해서 만든 것이다.
+ */
+export async function getStaticPaths() {
+  const projects = await getProjects();
+
+  return SERVICES.map((service) => ({
+    params: { slug: service.slug },
+    props: {
+      service,
+      // 해당 공종의 시공사례를 페이지 안에 직접 렌더링해 실제 콘텐츠를 채운다.
+      projects: projects.filter((p: any) => p.type === service.filter),
+    },
+  }));
+}
+
+const { service, projects } = Astro.props;
+
+const schemas = [
+  buildBreadcrumbSchema(
+    [
+      { name: "홈", path: "/" },
+      { name: "서비스", path: "/services" },
+      { name: service.name, path: `/services/${service.slug}` },
+    ],
+    Astro.site,
+  ),
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.heading,
+    serviceType: service.name,
+    description: service.description,
+    url: absoluteUrl(`/services/${service.slug}`, Astro.site),
+    provider: { "@id": `${absoluteUrl("/", Astro.site)}#business` },
+    areaServed: SERVICE_AREAS.map((area) => ({
+      "@type": "AdministrativeArea",
+      name: area,
+    })),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `${service.name} 세부 항목`,
+      itemListElement: service.includes.map((item) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: item },
+      })),
+    },
+  },
+];
+---
+
+<BaseLayout
+  title={service.title}
+  description={service.description}
+  keywords={[
+    service.keyword,
+    service.keyword.replace("용인", "처인구"),
+    `${service.keyword} 업체`,
+    `${service.keyword} 비용`,
+    `양지면 ${service.name}`,
+    "민건축",
+  ]}
+  schemas={schemas}
+>
+  <div class="py-24 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto">
+
+      <!-- Header -->
+      <div class="max-w-3xl mb-20">
+        <p class="text-sm tracking-widest text-muted uppercase mb-4 font-medium">
+          Service
+        </p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight text-balance">
+          {service.heading}
+        </h1>
+        <p class="text-lg text-muted leading-relaxed mb-8">
+          {service.description}
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a
+            href="/contact"
+            class="inline-flex items-center gap-2 bg-foreground text-background px-8 py-4 hover:opacity-90 transition-opacity font-medium"
+          >
+            무료 현장 견적 문의
+          </a>
+          <a
+            href={`tel:${BUSINESS.phone.replace(/-/g, '')}`}
+            class="inline-flex items-center gap-2 border border-border text-foreground px-8 py-4 hover:bg-secondary transition-colors font-medium"
+          >
+            {BUSINESS.phone}
+          </a>
+        </div>
+      </div>
+
+      <!-- 세부 시공 항목 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-24">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-6 leading-tight">
+            이런 공사를 진행합니다
+          </h2>
+          <ul class="space-y-3">
+            {service.includes.map((item) => (
+              <li class="flex items-start gap-3 text-muted leading-relaxed">
+                <span class="mt-2 w-1.5 h-1.5 shrink-0 bg-foreground/40 rounded-full"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-6 leading-tight">
+            시공 가능 지역
+          </h2>
+          <p class="text-muted leading-relaxed mb-6">
+            {SERVICE_AREAS.join(' · ')}
+          </p>
+          <p class="text-muted leading-relaxed">
+            사무실이 {BUSINESS.region} {BUSINESS.locality} {BUSINESS.street}에 있어
+            처인구 내에서는 당일 현장 방문도 가능합니다. 현장 확인과 견적 산출은
+            무료이며, 견적서를 보시고 결정하셔도 됩니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- 해당 공종 시공사례 -->
+      {projects.length > 0 && (
+        <div>
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+            <h2 class="text-2xl md:text-3xl font-semibold text-foreground leading-tight">
+              {service.name} 시공사례
+            </h2>
+            <a
+              href="/projects"
+              class="text-foreground hover:text-muted transition-colors font-medium w-fit"
+            >
+              전체 시공사례 보기 →
+            </a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {projects.map((project: any) => (
+              <a href={`/projects/${project.id}`} class="group block">
+                <div class="aspect-[4/5] bg-card mb-6 overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={buildProjectImageAlt(project)}
+                    loading="lazy"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <p class="text-sm text-muted mb-2">
+                  {project.typeKr} • {project.year}
+                </p>
+                <h3 class="text-xl font-semibold text-foreground group-hover:text-muted transition-colors leading-snug">
+                  {project.title}
+                </h3>
+                <p class="text-sm text-muted mt-1">{project.location}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- 다른 공종으로 이동 (내부 링크) -->
+      <div class="mt-24 pt-12 border-t border-border">
+        <h2 class="text-xl font-semibold text-foreground mb-6">다른 시공 분야</h2>
+        <div class="flex flex-wrap gap-3">
+          {SERVICES.filter((s) => s.slug !== service.slug).map((s) => (
+            <a
+              href={`/services/${s.slug}`}
+              class="px-5 py-3 bg-secondary text-foreground hover:bg-border transition-colors text-sm font-medium"
+            >
+              {s.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

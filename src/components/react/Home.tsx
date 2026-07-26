@@ -14,32 +14,33 @@ export function Home({ recentProjects }: HomeProps) {
     { number: "4", title: "완공", description: "마지막까지 책임지고 깨끗하게 마무리합니다." }
   ];
 
-  // 각 항목의 설명은 검색 유입을 노리는 실제 검색어를 자연스러운 문장으로 담는다.
+  // 링크는 색인 가능한 /services/<slug> 로 보낸다.
+  // 필터 주소(?filter=)는 canonical 통합 + robots 제외라 검색 유입을 못 받는다.
   const services = [
     {
-      name: "주택 건축",
-      filter: "NewBuild",
-      description: "용인 처인구 단독주택·전원주택 신축, 설계와 인허가부터 준공까지"
-    },
-    {
-      name: "인테리어",
-      filter: "Interior",
+      name: "인테리어 · 리모델링",
+      slug: "remodeling",
       description: "주방, 욕실, 도배, 바닥, 전체 리모델링까지 주택·상가 인테리어"
     },
     {
-      name: "방수",
-      filter: "Waterproofing",
-      description: "옥상 방수, 우레탄 방수, 누수 탐지와 보수 공사"
+      name: "부분수리 · 설비",
+      slug: "repair",
+      description: "누수, 보일러, 배관, 창호 등 용인 집수리와 설비 공사"
     },
     {
       name: "증개축 · 대수리",
-      filter: "Extension",
+      slug: "extension",
       description: "노후 주택 증축과 개축, 대수선 구조 검토와 건축 신고"
     },
     {
-      name: "부분수리 · 설비",
-      filter: "Repair",
-      description: "보일러, 배관, 창호 등 용인 집수리와 설비 공사"
+      name: "방수",
+      slug: "waterproofing",
+      description: "옥상 방수, 우레탄 방수, 누수 탐지와 보수 공사"
+    },
+    {
+      name: "주택 건축",
+      slug: "newbuild",
+      description: "용인 처인구 단독주택·전원주택 신축, 설계와 인허가부터 준공까지"
     }
   ];
 
@@ -66,7 +67,7 @@ export function Home({ recentProjects }: HomeProps) {
         <div className="relative z-10 text-center max-w-4xl px-6 py-20">
           <h1 className="text-background mb-8 tracking-tight text-balance">
             <span className="block text-base md:text-lg font-medium text-background/90 mb-5 tracking-normal">
-              용인시 처인구 주택 건축 · 인테리어 · 리모델링 전문 민건축
+              용인시 처인구 리모델링 · 집수리 전문 민건축
             </span>
             <span className="block text-5xl md:text-7xl lg:text-8xl font-semibold leading-[1.1]">
               작은 일 하나에도<br />
@@ -224,7 +225,7 @@ export function Home({ recentProjects }: HomeProps) {
               {services.map((service) => (
                 <a
                   key={service.name}
-                  href={`/projects?filter=${service.filter}`}
+                  href={`/services/${service.slug}`}
                   className="group flex items-start justify-between gap-6 py-6 border-b border-border hover:pl-4 transition-all"
                 >
                   <span className="flex flex-col gap-1.5">

@@ -1,5 +1,11 @@
 ---
-import { BUSINESS, FULL_ADDRESS, SERVICE_AREAS, SERVICES } from '../lib/seo';
+import {
+  BUSINESS,
+  FULL_ADDRESS,
+  NAVER_PLACE_URL,
+  SERVICE_AREAS,
+  SERVICES,
+} from '../lib/seo';
 ---
 
 <footer class="border-t border-border bg-background">
@@ -41,17 +47,21 @@ import { BUSINESS, FULL_ADDRESS, SERVICE_AREAS, SERVICES } from '../lib/seo';
               {BUSINESS.phone}
             </a>
           </p>
-          <p>
-            <a
-              href={`mailto:${BUSINESS.email}`}
-              class="text-muted text-sm hover:text-foreground transition-colors break-all"
-            >
-              {BUSINESS.email}
-            </a>
-          </p>
-          <p class="text-muted text-sm pt-2">
+          <p class="text-muted text-sm">
             <a href="/contact" class="hover:text-foreground transition-colors">
               견적 문의하기 →
+            </a>
+          </p>
+          <!-- 사이트와 네이버 플레이스를 연결한다. 지역 검색에서 같은 업체로
+               묶이려면 양쪽이 서로를 가리키고 있어야 한다. -->
+          <p class="text-muted text-sm">
+            <a
+              href={NAVER_PLACE_URL}
+              target="_blank"
+              rel="noopener"
+              class="hover:text-foreground transition-colors"
+            >
+              네이버 플레이스 →
             </a>
           </p>
         </div>
@@ -63,11 +73,13 @@ import { BUSINESS, FULL_ADDRESS, SERVICE_AREAS, SERVICES } from '../lib/seo';
           서비스
         </h4>
         <!-- 공종별 목록을 링크로 걸어 시공사례 페이지로 내부 링크를 흘려보낸다. -->
+        <!-- 색인 가능한 공종 페이지로 링크한다.
+             필터 주소(?filter=)는 canonical 통합 + robots 제외라 링크해도 무의미하다. -->
         <ul class="space-y-2 text-sm">
           {SERVICES.map((service) => (
             <li>
               <a
-                href={`/projects?filter=${service.filter}`}
+                href={`/services/${service.slug}`}
                 class="text-muted hover:text-foreground transition-colors"
               >
                 {service.name}
@@ -82,7 +94,7 @@ import { BUSINESS, FULL_ADDRESS, SERVICE_AREAS, SERVICES } from '../lib/seo';
     <div class="mt-16 pt-8 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <!-- 주소와 상호는 네이버 플레이스 등록 정보와 동일하게 유지할 것 -->
       <address class="text-muted-foreground text-sm not-italic">
-        {FULL_ADDRESS} | 대표 : {BUSINESS.founder}
+        {FULL_ADDRESS} | 대표 : {BUSINESS.founder} | 사업자등록번호 : {BUSINESS.businessNumber}
       </address>
       <p class="text-muted-foreground text-sm">
         &copy; {BUSINESS.name}. All rights reserved.

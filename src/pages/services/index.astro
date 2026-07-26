@@ -1,0 +1,114 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  BUSINESS,
+  SERVICES,
+  SERVICE_AREAS,
+  absoluteUrl,
+  buildBreadcrumbSchema,
+} from "../../lib/seo";
+
+/**
+ * 서비스 개요 페이지.
+ * "용인 리모델링", "처인구 집수리" 같은 상위 키워드를 정면으로 받는 페이지이며,
+ * 각 공종 상세 페이지로 내부 링크를 흘려보내는 허브 역할을 한다.
+ */
+const schemas = [
+  buildBreadcrumbSchema(
+    [
+      { name: "홈", path: "/" },
+      { name: "서비스", path: "/services" },
+    ],
+    Astro.site,
+  ),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "민건축 시공 서비스",
+    url: absoluteUrl("/services", Astro.site),
+    inLanguage: "ko-KR",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: SERVICES.length,
+      itemListElement: SERVICES.map((service, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: service.heading,
+        url: absoluteUrl(`/services/${service.slug}`, Astro.site),
+      })),
+    },
+  },
+];
+---
+
+<BaseLayout
+  title="용인 처인구 리모델링·집수리 시공 서비스"
+  description="민건축이 용인시 처인구에서 진행하는 리모델링, 인테리어, 집수리, 증개축, 대수선, 방수, 주택 신축 서비스를 안내합니다. 처인구 전 지역 무료 현장 방문 견적."
+  schemas={schemas}
+>
+  <div class="py-24 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto">
+
+      <div class="max-w-3xl mb-20">
+        <p class="text-sm tracking-widest text-muted uppercase mb-4 font-medium">
+          Services
+        </p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight text-balance">
+          용인 처인구 리모델링 · 집수리
+        </h1>
+        <p class="text-lg text-muted leading-relaxed">
+          민건축은 경기도 용인시 처인구 양지면에 자리한 종합 건축·인테리어 업체입니다.
+          큰 리모델링 공사부터 누수 보수 같은 작은 집수리까지 규모를 가리지 않고 진행합니다.
+          {SERVICE_AREAS.join(' · ')} 지역에 직접 방문해 확인하고 견적을 내드립니다.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12 mb-24">
+        {SERVICES.map((service) => (
+          <a
+            href={`/services/${service.slug}`}
+            class="group block border-t border-border pt-8 hover:border-foreground/40 transition-colors"
+          >
+            <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-4 leading-snug group-hover:text-muted transition-colors">
+              {service.heading}
+            </h2>
+            <p class="text-muted leading-relaxed mb-5">
+              {service.description}
+            </p>
+            <ul class="flex flex-wrap gap-x-4 gap-y-2 mb-5">
+              {service.includes.map((item) => (
+                <li class="text-sm text-muted">· {item}</li>
+              ))}
+            </ul>
+            <span class="text-sm font-medium text-foreground">자세히 보기 →</span>
+          </a>
+        ))}
+      </div>
+
+      <div class="border-t border-border pt-12">
+        <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-4 leading-tight">
+          어떤 공사인지 애매하셔도 괜찮습니다
+        </h2>
+        <p class="text-muted leading-relaxed mb-8 max-w-2xl">
+          현장을 직접 보고 리모델링이 나은지, 부분 수리로 해결되는지,
+          증축이 유리한지 알려드립니다. 상담과 현장 방문, 견적 산출은 무료입니다.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a
+            href="/contact"
+            class="inline-flex items-center gap-2 bg-foreground text-background px-8 py-4 hover:opacity-90 transition-opacity font-medium"
+          >
+            상담 문의하기
+          </a>
+          <a
+            href={`tel:${BUSINESS.phone.replace(/-/g, '')}`}
+            class="inline-flex items-center gap-2 border border-border text-foreground px-8 py-4 hover:bg-secondary transition-colors font-medium"
+          >
+            {BUSINESS.phone}
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

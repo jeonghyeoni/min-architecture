@@ -12,7 +12,9 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()]
   },
-  site: 'https://min-architecture.vercel.app',
+  // 한글 도메인 "민건축.com" 의 Punycode 형태.
+  // src/lib/seo.ts 의 SITE_URL, public/robots.txt 와 반드시 같은 값을 유지할 것.
+  site: 'https://xn--z69an80agjn.com',
   trailingSlash: 'never',
   integrations: [
     react(),

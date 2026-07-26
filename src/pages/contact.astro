@@ -7,6 +7,7 @@ import {
   BUSINESS,
   buildBreadcrumbSchema,
   buildFaqSchema,
+  NAVER_PLACE_URL,
 } from "../lib/seo";
 
 const schemas = [
@@ -30,15 +31,15 @@ const schemas = [
       "@type": "GeneralContractor",
       name: BUSINESS.name,
       telephone: BUSINESS.phoneRaw,
-      email: BUSINESS.email,
+      sameAs: [NAVER_PLACE_URL],
     },
   },
 ];
 ---
 
 <BaseLayout
-  title="용인 인테리어·집수리 상담 문의 | 처인구 무료 현장 견적"
-  description="용인시 처인구 주택 건축, 인테리어, 증개축, 방수, 집수리 상담을 받습니다. 전화 0507-1359-6512, 연중무휴. 현장 방문과 견적은 무료이며 처인구 전 지역 당일 방문이 가능합니다."
+  title="용인 리모델링·집수리 상담 문의 | 처인구 무료 현장 견적"
+  description="용인시 처인구 리모델링, 집수리, 증개축, 방수 상담을 받습니다. 전화 0507-1359-6512, 연중무휴. 현장 방문과 견적은 무료이며 처인구 전 지역 당일 방문이 가능합니다."
   schemas={schemas}
 >
   <ContactForm />
