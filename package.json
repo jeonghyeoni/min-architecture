@@ -11,17 +11,28 @@
   "dependencies": {
     "@astrojs/react": "^4.4.2",
     "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/vercel": "^9.0.5",
     "@notionhq/client": "^2.3.0",
+    "@supabase/supabase-js": "^2.110.8",
     "@tailwindcss/vite": "^4.1.18",
+    "@tiptap/extension-image": "^3.29.0",
+    "@tiptap/extension-link": "^3.29.0",
+    "@tiptap/extension-placeholder": "^3.29.0",
+    "@tiptap/extension-text-align": "^3.29.0",
+    "@tiptap/pm": "^3.29.0",
+    "@tiptap/react": "^3.29.0",
+    "@tiptap/starter-kit": "^3.29.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "astro": "^5.16.11",
     "dotenv": "^17.2.3",
     "fs-extra": "^11.3.3",
     "image-downloader": "^4.3.0",
+    "jose": "^6.2.4",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "sanitize-html": "^2.17.6",
     "tailwindcss": "^4.1.18"
   }
 }

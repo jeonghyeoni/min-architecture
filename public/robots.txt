@@ -21,6 +21,9 @@ User-agent: *
 Allow: /
 # 필터 파라미터는 canonical 로 /projects 를 가리키므로 수집 대상에서 제외한다.
 Disallow: /*?filter=
+# 관리자 영역
+Disallow: /admin
+Disallow: /api/
 
 # 한글 도메인 "민건축.com" 의 Punycode 형태
 Sitemap: https://xn--z69an80agjn.com/sitemap-index.xml

@@ -1,0 +1,90 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+
+export const prerender = false;
+
+// 이미 로그인돼 있으면 목록으로 보낸다.
+// 미들웨어가 이 경로는 통과시키므로 여기서 직접 확인한다.
+import { SESSION_COOKIE, verifySessionToken } from "../../lib/auth";
+if (await verifySessionToken(Astro.cookies.get(SESSION_COOKIE)?.value)) {
+  return Astro.redirect("/admin", 302);
+}
+
+const next = Astro.url.searchParams.get("next") ?? "/admin";
+---
+
+<AdminLayout title="로그인" showNav={false}>
+  <div class="max-w-sm mx-auto mt-16">
+    <h1 class="text-2xl font-semibold text-foreground mb-2">민건축 관리자</h1>
+    <p class="text-muted text-sm mb-8">비밀번호를 입력해주세요.</p>
+
+    <form id="login-form" class="space-y-4">
+      <input type="hidden" name="next" value={next} />
+      <div>
+        <label for="password" class="block text-sm font-medium text-foreground mb-2">
+          비밀번호
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autocomplete="current-password"
+          autofocus
+          class="w-full px-4 py-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+        />
+      </div>
+
+      <p id="error" class="text-sm text-red-600 hidden" role="alert"></p>
+
+      <button
+        type="submit"
+        id="submit"
+        class="w-full bg-foreground text-background py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+      >
+        로그인
+      </button>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const errorEl = document.getElementById("error") as HTMLParagraphElement;
+  const submitBtn = document.getElementById("submit") as HTMLButtonElement;
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    errorEl.classList.add("hidden");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "확인 중...";
+
+    const data = new FormData(form);
+    try {
+      // JSON 으로 보낸다. 폼 인코딩을 받지 않는 것이 CSRF 방어의 일부다.
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password: data.get("password") }),
+      });
+
+      if (res.ok) {
+        window.location.href = String(data.get("next") || "/admin");
+        return;
+      }
+
+      const body = await res.json().catch(() => ({}));
+      errorEl.textContent =
+        body.error === "locked"
+          ? "시도 횟수를 초과했습니다. 15분 뒤 다시 시도해주세요."
+          : "비밀번호가 올바르지 않습니다.";
+      errorEl.classList.remove("hidden");
+    } catch {
+      errorEl.textContent = "연결에 실패했습니다. 잠시 후 다시 시도해주세요.";
+      errorEl.classList.remove("hidden");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "로그인";
+    }
+  });
+</script>

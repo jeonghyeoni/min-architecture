@@ -9,6 +9,8 @@ export interface Project {
   location: string;
   image: string;
   description?: string;
+  /** 관리자 에디터로 작성한 본문 HTML. 노션에서 이전된 글은 비어 있다 */
+  contentHtml?: string;
   images?: string[];
   beforeImage?: string | null;
   afterImage?: string | null;

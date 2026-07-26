@@ -1,0 +1,25 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import PostEditor from "../../components/react/admin/PostEditor";
+
+export const prerender = false;
+
+const initial = {
+  title: "",
+  type: "Interior",
+  typeKr: "인테리어",
+  year: String(new Date().getFullYear()),
+  location: "",
+  description: "",
+  contentHtml: "",
+  image: null,
+  images: [],
+  status: "draft" as const,
+};
+---
+
+<AdminLayout title="새 글 쓰기">
+  <h1 class="text-xl font-semibold text-foreground mb-6">새 시공사례</h1>
+  <!-- ProseMirror 가 생성 시점에 document 를 만지므로 client:only 로 띄운다 -->
+  <PostEditor client:only="react" initial={initial} />
+</AdminLayout>

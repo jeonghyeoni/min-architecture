@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+
+/**
+ * 관리자 전용 레이아웃.
+ *
+ * BaseLayout 을 쓰지 않는다. 공개 사이트의 네비게이션·푸터·구조화 데이터·
+ * OG 태그가 관리자 화면에 딸려 들어갈 이유가 없고, 실수로 색인될 여지도 줄인다.
+ */
+interface Props {
+  title: string;
+  /** 로그인 화면처럼 상단 바가 필요 없는 경우 false */
+  showNav?: boolean;
+}
+
+const { title, showNav = true } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | 민건축 관리자</title>
+    <!-- 미들웨어가 X-Robots-Tag 도 함께 보내지만, 메타로도 이중으로 막는다 -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="NaverBot" content="noindex, nofollow" />
+    <meta name="Yeti" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+  </head>
+  <body class="bg-secondary min-h-screen">
+    {showNav && (
+      <header class="bg-card border-b border-border sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+          <div class="flex items-center gap-6">
+            <a href="/admin" class="font-semibold text-foreground">민건축 관리자</a>
+            <a
+              href="/admin"
+              class={`text-sm ${currentPath === '/admin' ? 'text-foreground font-medium' : 'text-muted'}`}
+            >
+              시공사례
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="/" target="_blank" rel="noopener" class="text-sm text-muted hover:text-foreground">
+              사이트 보기 ↗
+            </a>
+            <form method="POST" action="/api/admin/logout">
+              <button type="submit" class="text-sm text-muted hover:text-foreground">
+                로그아웃
+              </button>
+            </form>
+          </div>
+        </div>
+      </header>
+    )}
+    <main class="max-w-6xl mx-auto px-5 py-8">
+      <slot />
+    </main>
+  </body>
+</html>

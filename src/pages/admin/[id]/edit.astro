@@ -1,0 +1,36 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import PostEditor from "../../../components/react/admin/PostEditor";
+import { getProjectById } from "../../../lib/projects";
+
+export const prerender = false;
+
+const id = Number(Astro.params.id);
+const project = Number.isInteger(id) ? await getProjectById(id) : null;
+
+if (!project) {
+  return Astro.redirect("/admin", 302);
+}
+
+const initial = {
+  id: project.id,
+  title: project.title,
+  type: project.type,
+  typeKr: project.typeKr,
+  year: project.year,
+  location: project.location,
+  description: project.description,
+  contentHtml: project.contentHtml,
+  image: project.image || null,
+  images: project.images,
+  status: project.status,
+};
+---
+
+<AdminLayout title="글 수정">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-foreground">시공사례 수정</h1>
+    <a href="/admin" class="text-sm text-muted hover:text-foreground">← 목록</a>
+  </div>
+  <PostEditor client:only="react" initial={initial} />
+</AdminLayout>

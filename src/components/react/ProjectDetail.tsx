@@ -73,18 +73,25 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
       </section>
 
       {/* Project Description */}
-      {/* project.description이 있을 때만 이 섹션 전체를 보여줍니다 */}
-      {project.description && (
+      {/* 관리자에서 작성한 본문(contentHtml)이 있으면 그것을 보여주고,
+          없으면 노션에서 넘어온 기존 글처럼 description 을 문단으로 나눠 보여준다.
+          contentHtml 은 저장 시 서버에서 새니타이즈된 값이다. */}
+      {(project.contentHtml || project.description) && (
         <section className="px-6 lg:px-12 mb-32">
           <div className="max-w-4xl mx-auto">
             <p className="text-sm tracking-wider text-gray-500 mb-6 font-medium">프로젝트 개요</p>
-            <div className="prose prose-lg max-w-none">
-              {project.description.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="text-gray-600 leading-relaxed mb-6 text-[17px]">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            {project.contentHtml ? (
+              <div
+                className="post-content"
+                dangerouslySetInnerHTML={{ __html: project.contentHtml }}
+              />
+            ) : (
+              <div className="post-content">
+                {project.description!.split('\n\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
