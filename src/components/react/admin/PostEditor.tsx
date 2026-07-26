@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
+import { EditableImage } from "./EditableImage";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 
@@ -144,6 +144,42 @@ export default function PostEditor({ initial }: Props) {
     });
   };
 
+  /**
+   * 갤러리에 있던 사진을 본문 끝에 넣고 갤러리를 비운다.
+   *
+   * 노션에서 옮겨온 글은 사진이 전부 갤러리 배열에만 있어서 본문 편집기에
+   * 아무것도 보이지 않는다. 한 번 옮겨두면 글과 사진을 섞어 쓸 수 있다.
+   * 양쪽에 중복으로 남으면 상세 페이지에 사진이 두 번 나오므로 갤러리는 비운다.
+   */
+  const moveGalleryIntoBody = () => {
+    if (!editor || !form.images.length) return;
+    if (
+      !confirm(
+        `갤러리 사진 ${form.images.length}장을 본문 끝으로 옮깁니다.\n` +
+          `옮긴 뒤 본문에서 순서를 바꾸거나 사이에 글을 쓸 수 있습니다.\n\n계속할까요?`,
+      )
+    ) {
+      return;
+    }
+
+    const alt = [form.location || "용인 처인구", form.typeKr, form.title]
+      .filter(Boolean)
+      .join(" ");
+
+    const chain = editor.chain().focus("end");
+    for (const src of form.images) {
+      chain.createParagraphNear().setImage({ src, alt });
+    }
+    chain.run();
+
+    dirtyRef.current = true;
+    setForm((prev) => ({
+      ...prev,
+      images: [],
+      contentHtml: editor.getHTML(),
+    }));
+  };
+
   const removeImage = (index: number) => {
     dirtyRef.current = true;
     // Storage 파일은 지우지 않는다. 다른 글이나 본문에서 같은 주소를 쓰고 있을 수
@@ -178,7 +214,7 @@ export default function PostEditor({ initial }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3, 4] } }),
-      Image.configure({ inline: false, HTMLAttributes: { loading: "lazy" } }),
+      EditableImage.configure({ HTMLAttributes: { loading: "lazy" } }),
       Link.configure({ openOnClick: false, autolink: true }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
@@ -410,6 +446,25 @@ export default function PostEditor({ initial }: Props) {
           첫 번째 사진이 상세 페이지 맨 위 큰 사진으로 쓰입니다.
         </p>
 
+        {form.images.length > 0 && (
+          <div className="mb-4 p-4 bg-card border border-border rounded-lg">
+            <p className="text-sm text-foreground mb-1 font-medium">
+              사진 사이사이에 설명을 쓰고 싶으시면
+            </p>
+            <p className="text-sm text-muted mb-3">
+              갤러리 사진을 본문으로 옮기면 글과 사진을 원하는 순서로 섞을 수 있습니다.
+              옮긴 뒤에는 본문에서 사진마다 위/아래 이동과 삭제가 가능합니다.
+            </p>
+            <button
+              type="button"
+              onClick={moveGalleryIntoBody}
+              className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-secondary"
+            >
+              갤러리 사진 {form.images.length}장을 본문으로 옮기기
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
           {form.images.map((url, i) => (
             <div key={url + i} className="border border-border rounded-lg overflow-hidden bg-card">
@@ -524,6 +579,10 @@ export default function PostEditor({ initial }: Props) {
       {/* 본문 */}
       <div>
         <label className="block text-sm font-medium mb-2">내용</label>
+        <p className="text-sm text-muted mb-2">
+          사진은 끌어다 놓거나 붙여넣으면 그 자리에 들어갑니다.
+          본문 안 사진에 마우스를 올리면 위/아래 이동·삭제 버튼이 나옵니다.
+        </p>
         <Toolbar editor={editor} onPickImage={(f) => insertImage(editor, f)} />
         <div className="border border-border border-t-0 rounded-b-lg bg-card px-4 py-4">
           <EditorContent editor={editor} />

@@ -127,24 +127,28 @@ export function ProjectDetail({ project, prevProject, nextProject }: ProjectDeta
           <div className="max-w-7xl mx-auto">
             <p className="text-sm tracking-wider text-gray-500 mb-8 font-medium">전후 비교</p>
             <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden select-none group">
-              {/* Before Image (Base) */}
+              {/* 아래 깔리는 층 = 시공 후.
+                  덮개가 왼쪽만 덮으므로 여기는 오른쪽에 보이고, 라벨도 오른쪽이 AFTER 다. */}
               <div className="absolute inset-0">
                 <img
-                  src={project.beforeImage}
-                  alt={`${project.title} ${project.typeKr} 시공 전 모습`}
+                  src={project.afterImage}
+                  alt={`${project.title} ${project.typeKr} 시공 후 완성 모습`}
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
-              
-              {/* After Image (Overlay with Clip Path) */}
-              <div 
+
+              {/* 덮개 층 = 시공 전.
+                  inset(0 X% 0 0) 은 오른쪽에서 X% 를 잘라내므로 왼쪽에만 남는다.
+                  왼쪽 라벨이 BEFORE 이므로 여기에 시공 전 사진이 와야 한다.
+                  (이 두 장이 서로 바뀌어 있어 라벨과 반대로 보이던 문제를 고침) */}
+              <div
                 className="absolute inset-0"
                 style={{ clipPath: `inset(0 ${100 - beforeAfterSlider}% 0 0)` }}
               >
                 <img
-                  src={project.afterImage}
-                  alt={`${project.title} ${project.typeKr} 시공 후 완성 모습`}
+                  src={project.beforeImage}
+                  alt={`${project.title} ${project.typeKr} 시공 전 모습`}
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />
