@@ -14,6 +14,14 @@
   --color-primary-foreground: #faf9f6;
   --color-secondary: #f5f5f0;
   --color-secondary-foreground: #1a1a1a;
+  /*
+   * 어두운 배경 띠(홈 하단 상담 유도 영역)에 쓰는 색.
+   * 본문 글자색(--color-foreground)은 거의 순검정이라 배경으로 깔면
+   * 크림빛 배경·베이지 포인트색과 따로 놀아서, 같은 웜 계열의
+   * 짙은 차콜을 따로 둔다.
+   */
+  --color-contrast: #2e2a25;
+  --color-contrast-foreground: #faf9f6;
   --font-sans: 'Pretendard', ui-sans-serif, system-ui, sans-serif;
 }
 

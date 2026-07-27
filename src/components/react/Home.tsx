@@ -249,26 +249,26 @@ export function Home({ recentProjects, heroImage }: HomeProps) {
       </section>
 
       {/* Contact CTA Section */}
-      <section className="py-24 md:py-32 px-6 lg:px-12 bg-foreground">
+      <section className="py-24 md:py-32 px-6 lg:px-12 bg-contrast">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm tracking-widest text-background/60 uppercase mb-6 font-medium">Contact</p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-background mb-8 leading-tight text-balance">
+          <p className="text-sm tracking-widest text-accent uppercase mb-6 font-medium">Contact</p>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-contrast-foreground mb-8 leading-tight text-balance">
             고객님의 공간,<br />함께 고민하겠습니다
           </h2>
-          <p className="text-lg text-background/70 mb-12 leading-relaxed max-w-xl mx-auto">
+          <p className="text-lg text-contrast-foreground/75 mb-12 leading-relaxed max-w-xl mx-auto">
             주택 건축부터 작은 수리까지, 편하게 상담해보세요
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
+            <a
               href="/contact"
-              className="group inline-flex items-center justify-center gap-2 bg-background text-foreground px-8 py-4 hover:bg-background/90 transition-colors font-medium"
+              className="group inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground px-8 py-4 hover:bg-accent/90 transition-colors font-medium"
             >
               문의하기
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
-            <a 
+            <a
               href="/projects"
-              className="inline-flex items-center justify-center gap-2 border border-background/30 text-background px-8 py-4 hover:bg-background hover:text-foreground transition-colors font-medium"
+              className="inline-flex items-center justify-center gap-2 border border-contrast-foreground/30 text-contrast-foreground px-8 py-4 hover:bg-contrast-foreground hover:text-contrast transition-colors font-medium"
             >
               작업 둘러보기
             </a>
