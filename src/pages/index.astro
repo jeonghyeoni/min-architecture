@@ -4,9 +4,14 @@ import { Home } from "../components/react/Home";
 import { getProjects } from "../lib/projects";
 import { DEFAULT_DESCRIPTION, buildBreadcrumbSchema } from "../lib/seo";
 
-// Notion에서 데이터 가져와서 최신 3개만 자르기
+// 최신순으로 내려오므로 앞에서 3개가 최근 시공사례다.
 const allProjects = await getProjects();
 const recentProjects = allProjects.slice(0, 3);
+
+// 첫 화면 배경은 **가장 처음 올린 글**의 대표 사진으로 고정한다.
+// 최신 글을 쓰면 글을 올릴 때마다 첫인상이 바뀌어 버린다.
+// 목록이 최신순(id 내림차순)이라 맨 뒤가 가장 오래된 글이다.
+const heroImage = allProjects.at(-1)?.image || "";
 
 const schemas = [buildBreadcrumbSchema([{ name: "홈", path: "/" }], Astro.site)];
 ---
@@ -16,5 +21,5 @@ const schemas = [buildBreadcrumbSchema([{ name: "홈", path: "/" }], Astro.site)
   description={DEFAULT_DESCRIPTION}
   schemas={schemas}
 >
-  <Home client:load recentProjects={recentProjects} />
+  <Home client:load recentProjects={recentProjects} heroImage={heroImage} />
 </BaseLayout>

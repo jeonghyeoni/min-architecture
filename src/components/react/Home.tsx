@@ -3,9 +3,11 @@ import type { Project } from './ProjectsList';
 
 interface HomeProps {
   recentProjects: Project[];
+  /** 첫 화면 배경. 가장 처음 올린 글의 대표 사진으로 고정된다 */
+  heroImage?: string;
 }
 
-export function Home({ recentProjects }: HomeProps) {
+export function Home({ recentProjects, heroImage }: HomeProps) {
   
   const processSteps = [
     { number: "1", title: "상담", description: "고객님의 상황과 예산을 충분히 듣고 최적의 방안을 찾습니다." },
@@ -45,7 +47,13 @@ export function Home({ recentProjects }: HomeProps) {
   ];
 
   const featuredProjects = recentProjects || [];
-  const heroImage = featuredProjects[0]?.image || "https://images.unsplash.com/photo-1627141234469-24711efb373c?q=80&w=1600";
+
+  // 배경은 페이지에서 넘겨받는다. 예전에는 최신 글의 대표 사진을 썼는데,
+  // 글을 올릴 때마다 첫인상이 바뀌어 버려 고정값으로 돌렸다.
+  // 넘어온 값이 없을 때만(=아직 글이 하나도 없을 때) 임시 이미지를 쓴다.
+  const background =
+    heroImage ||
+    "https://images.unsplash.com/photo-1627141234469-24711efb373c?q=80&w=1600";
 
   return (
     <div className="bg-background">
@@ -54,7 +62,7 @@ export function Home({ recentProjects }: HomeProps) {
         {/* Background Image with Blur */}
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src={heroImage}
+            src={background}
             alt="용인시 처인구 주택 건축·인테리어 전문 민건축 시공 현장"
             fetchPriority="high"
             className="w-full h-full object-cover scale-110 blur-sm"
