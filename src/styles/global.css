@@ -16,10 +16,11 @@
   --color-secondary-foreground: #1a1a1a;
   /*
    * 홈 하단 상담 유도 영역의 배경 띠.
-   * 포인트색(--color-accent)을 옅게 푼 모래빛이라 크림빛 배경과 같은
-   * 웜 계열로 이어지면서도, 위아래 밝은 구역과는 눈에 띄게 구분된다.
+   * 웜 그레이. 크림빛 배경(--color-background)·웜 그레이 구역
+   * (--color-secondary)과 같은 계열이면서 한 단계 짙어, 색을 더 얹지
+   * 않고도 구역이 구분된다.
    */
-  --color-sand: #ece4d6;
+  --color-warm-gray: #e6e3dd;
   --font-sans: 'Pretendard', ui-sans-serif, system-ui, sans-serif;
 }
 

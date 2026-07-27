@@ -249,7 +249,7 @@ export function Home({ recentProjects, heroImage }: HomeProps) {
       </section>
 
       {/* Contact CTA Section */}
-      <section className="py-24 md:py-32 px-6 lg:px-12 bg-sand">
+      <section className="py-24 md:py-32 px-6 lg:px-12 bg-warm-gray">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-sm tracking-widest text-foreground/70 uppercase mb-6 font-medium">Contact</p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-8 leading-tight text-balance">
