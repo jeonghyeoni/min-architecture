@@ -529,12 +529,14 @@ export default function PostEditor({ initial }: Props) {
 
         {/* 저장 직후 바로 목록으로 갈 수 있게 한다.
             저장하지 않은 변경이 있으면 링크 클릭을 가로채 확인을 받는다. */}
-        <a
-          href="/admin"
-          className="inline-block mt-5 px-5 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-card"
-        >
-          ← 목록으로 돌아가기
-        </a>
+        <div className="flex justify-end mt-5">
+          <a
+            href="/admin"
+            className="px-5 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-card"
+          >
+            ← 목록으로 돌아가기
+          </a>
+        </div>
       </div>
     </div>
   );
