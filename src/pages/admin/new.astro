@@ -16,7 +16,8 @@ const initial = {
   images: [],
   beforeImage: null,
   afterImage: null,
-  status: "draft" as const,
+  // 새 글은 바로 공개가 기본. 초안으로 두려면 체크를 해제하면 된다.
+  status: "published" as const,
 };
 ---
 

@@ -89,24 +89,6 @@ export function Contact() {
               </div>
             </div>
 
-            {/* 주소 */}
-            <div className="flex gap-4 justify-center text-left items-start">
-              <div className="w-12 h-12 bg-gray-100 flex items-center justify-center flex-shrink-0 rounded-full">
-                <MapPin className="w-5 h-5 text-gray-600" />
-              </div>
-              {/* 주소 표기는 네이버 플레이스 등록 정보와 글자까지 동일해야 한다.
-                  같은 업체로 묶여야 지역 검색 신뢰도가 올라간다. */}
-              <div>
-                <p className="text-sm text-gray-500 mb-1 font-medium">주소</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  경기도 용인시 처인구 양지면 용곡로 38-4 1호
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  용인 처인구 전 지역 현장 방문 · 기흥구/수지구 상담 가능
-                </p>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>

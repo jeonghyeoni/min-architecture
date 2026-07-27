@@ -58,13 +58,18 @@ const COLUMNS =
  * 공개된 시공사례 전체. 빌드 시 공개 페이지가 사용한다.
  *
  * anon 키 + RLS 로 읽으므로 초안은 애초에 내려오지 않는다.
- * 정렬은 id 오름차순 — 상세 페이지의 이전/다음 네비게이션이 이 순서에 의존한다.
+ *
+ * 정렬은 **최근에 쓴 글이 위로** 오도록 id 내림차순.
+ * id 는 시퀀스로 증가하므로 작성 순서와 같다.
+ * 홈의 "최근 시공사례" 가 slice(0,3) 으로 앞 3개를 쓰는데, 오름차순이던 때는
+ * 가장 오래된 3개가 나오고 있었다.
+ * 상세 페이지의 이전/다음 네비게이션도 이 순서를 따른다.
  */
 export async function getProjects(): Promise<Project[]> {
   const { data, error } = await publicClient()
     .from("projects")
     .select(COLUMNS)
-    .order("id", { ascending: true });
+    .order("id", { ascending: false });
 
   if (error) {
     // 노션 버전은 조용히 []를 반환해 빈 사이트가 초록불로 배포됐다.

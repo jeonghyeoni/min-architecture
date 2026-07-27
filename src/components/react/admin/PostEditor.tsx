@@ -300,11 +300,18 @@ export default function PostEditor({ initial }: Props) {
     [form, editor],
   );
 
-  // 20초마다 조용히 자동저장. 공개된 글은 자동으로 건드리지 않는다.
+  /**
+   * 20초마다 조용히 자동저장.
+   *
+   * **이미 한 번 저장된 글에만** 적용한다(idRef 가 있을 때).
+   * 새 글은 기본값이 '공개' 라, 사장님이 저장 버튼을 누르기도 전에 자동으로
+   * 홈페이지에 올라갈 글이 만들어지면 안 된다.
+   * 첫 저장 이후에는 현재 공개 여부를 그대로 유지하며 저장한다.
+   */
   useEffect(() => {
     const t = setInterval(() => {
-      if (dirtyRef.current && form.status === "draft" && form.title.trim()) {
-        save("draft", true);
+      if (dirtyRef.current && idRef.current !== undefined && form.title.trim()) {
+        save(form.status, true);
       }
     }, 20_000);
     return () => clearInterval(t);
@@ -519,6 +526,15 @@ export default function PostEditor({ initial }: Props) {
           저장한 내용은 목록 화면의 <strong className="text-foreground">사이트에 반영하기</strong> 를
           눌러야 홈페이지에 나타납니다.
         </p>
+
+        {/* 저장 직후 바로 목록으로 갈 수 있게 한다.
+            저장하지 않은 변경이 있으면 링크 클릭을 가로채 확인을 받는다. */}
+        <a
+          href="/admin"
+          className="inline-block mt-5 px-5 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-card"
+        >
+          ← 목록으로 돌아가기
+        </a>
       </div>
     </div>
   );
