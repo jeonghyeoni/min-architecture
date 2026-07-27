@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { SESSION_COOKIE, verifySessionToken } from "./lib/auth";
+import { json } from "./lib/apiGuard";
 
 /**
  * 관리자 영역 보호.
@@ -40,12 +41,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // API 는 리다이렉트를 받으면 HTML 을 JSON 으로 파싱하려다 이상하게 깨진다.
     // 화면 요청과 API 요청을 구분해서 응답한다.
     if (pathname.startsWith("/api/")) {
-      return markNoIndex(
-        new Response(JSON.stringify({ error: "unauthorized" }), {
-          status: 401,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+      return markNoIndex(json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401));
     }
     const next = encodeURIComponent(pathname + context.url.search);
     return markNoIndex(context.redirect(`${LOGIN_PAGE}?next=${next}`, 302));

@@ -5,6 +5,7 @@ import {
   sessionCookieOptions,
   verifyPassword,
 } from "../../../lib/auth";
+import { json } from "../../../lib/apiGuard";
 
 export const prerender = false;
 
@@ -46,12 +47,6 @@ function recordFailure(ip: string): void {
   }
   entry.count += 1;
 }
-
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   // 폼 인코딩은 받지 않는다. JSON 만 받으면 교차 출처 요청에 프리플라이트가

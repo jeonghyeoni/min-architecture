@@ -23,12 +23,12 @@ export const GET: APIRoute = async ({ request, cookies }) => {
   try {
     const env = await import("astro:env/server");
     const check = (name: string, v: unknown) => ({
-      설정됨: Boolean(v),
-      길이: typeof v === "string" ? v.length : 0,
+      present: Boolean(v),
+      length: typeof v === "string" ? v.length : 0,
       // 키를 바꿔 넣은 실수를 잡기 위한 최소한의 단서
-      앞부분: typeof v === "string" ? v.slice(0, 6) : null,
+      prefix: typeof v === "string" ? v.slice(0, 6) : null,
     });
-    report.환경변수 = {
+    report.env = {
       SUPABASE_URL: check("SUPABASE_URL", (env as any).SUPABASE_URL),
       SUPABASE_ANON_KEY: check("SUPABASE_ANON_KEY", (env as any).SUPABASE_ANON_KEY),
       SUPABASE_SERVICE_ROLE_KEY: check(
@@ -43,18 +43,18 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       ),
     };
   } catch (e: any) {
-    report.환경변수 = { 오류: String(e?.message ?? e) };
+    report.env = { error: String(e?.message ?? e) };
   }
 
   // 2. 요청이 도착한 주소 (CSRF 검사가 이 값과 Origin 을 비교한다)
   try {
-    report.요청 = {
-      요청주소: new URL(request.url).origin,
-      Origin헤더: request.headers.get("origin"),
-      Referer헤더: request.headers.get("referer"),
+    report.request = {
+      self_origin: new URL(request.url).origin,
+      origin_header: request.headers.get("origin"),
+      referer_header: request.headers.get("referer"),
     };
   } catch (e: any) {
-    report.요청 = { 오류: String(e?.message ?? e) };
+    report.request = { error: String(e?.message ?? e) };
   }
 
   // 3. 서비스 키로 실제 읽기가 되는가 (RLS 우회 확인)
@@ -64,11 +64,11 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       .from("projects")
       .select("id")
       .limit(1);
-    report.DB읽기 = error
-      ? { 성공: false, 오류: error.message }
-      : { 성공: true, 조회된행: data?.length ?? 0 };
+    report.db_read = error
+      ? { ok: false, error: error.message }
+      : { ok: true, rows: data?.length ?? 0 };
   } catch (e: any) {
-    report.DB읽기 = { 성공: false, 오류: String(e?.message ?? e) };
+    report.db_read = { ok: false, error: String(e?.message ?? e) };
   }
 
   // 4. 쓰기가 되는가 (임시 행을 넣었다 지운다)
@@ -87,22 +87,22 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       { onConflict: "id" },
     );
     if (insErr) {
-      report.DB쓰기 = { 성공: false, 오류: insErr.message };
+      report.db_write = { ok: false, error: insErr.message };
     } else {
       await supabase.from("projects").delete().eq("id", probeId);
-      report.DB쓰기 = { 성공: true };
+      report.db_write = { ok: true };
     }
   } catch (e: any) {
-    report.DB쓰기 = { 성공: false, 오류: String(e?.message ?? e) };
+    report.db_write = { ok: false, error: String(e?.message ?? e) };
   }
 
   // 5. 새니타이즈가 도는가 (sanitize-html 번들 문제 확인)
   try {
     const { sanitizeContentHtml } = await import("../../../lib/sanitize");
     const out = sanitizeContentHtml("<p>테스트</p><script>x</script>");
-    report.새니타이즈 = { 성공: true, 결과: out };
+    report.sanitize = { ok: true, result: out };
   } catch (e: any) {
-    report.새니타이즈 = { 성공: false, 오류: String(e?.message ?? e) };
+    report.sanitize = { ok: false, error: String(e?.message ?? e) };
   }
 
   return json(report, 200);
