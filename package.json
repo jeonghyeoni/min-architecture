@@ -34,5 +34,8 @@
     "react-dom": "^19.2.3",
     "sanitize-html": "^2.17.6",
     "tailwindcss": "^4.1.18"
+  },
+  "overrides": {
+    "htmlparser2": "^9.1.0"
   }
 }
