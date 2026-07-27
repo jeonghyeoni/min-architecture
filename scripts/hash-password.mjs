@@ -15,10 +15,19 @@ if (!password) {
   console.error("사용법: node scripts/hash-password.mjs '비밀번호'");
   process.exit(1);
 }
-if (password.length < 10) {
-  console.error("비밀번호가 너무 짧습니다. 10자 이상, 되도록 문장 형태로 정해주세요.");
-  console.error("예: 민건축-양지면-2026-시공");
+// 로그인에 15분당 5회 시도 제한이 걸려 있어 짧은 비밀번호도 무차별 대입으로
+// 뚫기는 어렵다. 다만 너무 짧으면 추측만으로도 맞을 수 있어 최소선은 남겨둔다.
+const MIN_LENGTH = 8;
+
+if (password.length < MIN_LENGTH) {
+  console.error(`비밀번호가 너무 짧습니다. ${MIN_LENGTH}자 이상으로 정해주세요.`);
   process.exit(1);
+}
+if (password.length < 12) {
+  console.warn(
+    `\n※ ${password.length}자입니다. 쓰는 데는 문제없지만, 여유가 되시면\n` +
+      `  "민건축-양지면-2026" 처럼 길게 잡는 편이 안전합니다.`,
+  );
 }
 
 const salt = randomBytes(16);
