@@ -39,6 +39,13 @@ export default defineConfig({
         context: 'server',
         access: 'secret',
         optional: true
+      }),
+      // Vercel Cron 이 /api/cron/keepalive 를 부를 때 붙이는 비밀값.
+      // 없으면 빌드는 되지만 크론 요청이 401 로 거절되어 Supabase 가 다시 잠든다.
+      CRON_SECRET: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true
       })
     }
   },
