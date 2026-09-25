@@ -44,7 +44,16 @@
   font-size: 17px;
   line-height: 1.8;
 }
-.post-content > * + * { margin-top: 1.25em; }
+/*
+ * 공개 페이지(ProjectDetail 의 RichContent)는 전후비교 블록을 걸러내려고
+ * 본문 조각을 <div dangerouslySetInnerHTML> 로 한 번 더 감싸서 넣는다.
+ * 그 안의 이미지·문단은 .post-content 의 직계 자식이 아니라 손자가 되므로
+ * `>` 만 쓰면 사진과 사진 사이 간격이 사라져 다닥다닥 붙어 보인다.
+ * 관리자 에디터는 이 래퍼가 없어 직계 자식이라 정상으로 보였다.
+ * 래퍼 한 단계 안쪽까지 같은 규칙이 미치도록 넓혀 화면을 맞춘다.
+ */
+.post-content > * + *,
+.post-content > div > * + * { margin-top: 1.25em; }
 
 .post-content h2 {
   color: var(--color-foreground);
