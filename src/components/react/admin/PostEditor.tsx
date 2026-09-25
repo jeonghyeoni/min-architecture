@@ -190,15 +190,39 @@ export default function PostEditor({ initial }: Props) {
     }));
   };
 
-  const insertImage = useCallback(
-    async (editor: any, file: File) => {
+  /**
+   * 여러 장을 한 번에 올릴 때 쓴다.
+   *
+   * 사진마다 빈 문단을 하나씩 끼워 넣어(moveLegacyIntoBody 와 같은 방식),
+   * Enter 를 직접 치지 않아도 공개 페이지에서 사진끼리 간격이 생기게 한다.
+   * 업로드는 선택한 순서를 지키려고 한 장씩 순서대로 처리하고,
+   * 일부가 실패해도 나머지는 계속 올린 뒤 실패 목록만 한 번에 알린다.
+   */
+  const insertImages = useCallback(
+    async (editor: any, files: File[]) => {
+      if (!files.length) return;
       setUploading(true);
       setError(null);
+      const alt = autoAlt();
+      const urls: string[] = [];
+      const failures: string[] = [];
       try {
-        const url = await uploadImage(file, idRef.current);
-        editor.chain().focus().setImage({ src: url, alt: autoAlt() }).run();
-      } catch (e: any) {
-        setError(e.message ?? "이미지 업로드 실패");
+        for (const file of files) {
+          try {
+            urls.push(await uploadImage(file, idRef.current));
+          } catch (e: any) {
+            failures.push(e.message ?? "이미지 업로드 실패");
+          }
+        }
+        if (urls.length) {
+          const chain = editor.chain().focus();
+          urls.forEach((src, i) => {
+            if (i > 0) chain.createParagraphNear();
+            chain.setImage({ src, alt });
+          });
+          chain.run();
+        }
+        if (failures.length) setError(failures.join("\n"));
       } finally {
         setUploading(false);
       }
@@ -225,19 +249,23 @@ export default function PostEditor({ initial }: Props) {
     editorProps: {
       attributes: { class: "post-content min-h-[420px] focus:outline-none" },
       handlePaste(view, event) {
-        const file = Array.from(event.clipboardData?.files ?? [])[0];
-        if (file?.type.startsWith("image/")) {
+        const files = Array.from(event.clipboardData?.files ?? []).filter((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (files.length) {
           event.preventDefault();
-          insertImage(editor, file);
+          insertImages(editor, files);
           return true;
         }
         return false;
       },
       handleDrop(view, event) {
-        const file = Array.from((event as DragEvent).dataTransfer?.files ?? [])[0];
-        if (file?.type.startsWith("image/")) {
+        const files = Array.from((event as DragEvent).dataTransfer?.files ?? []).filter((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (files.length) {
           event.preventDefault();
-          insertImage(editor, file);
+          insertImages(editor, files);
           return true;
         }
         return false;
@@ -452,7 +480,7 @@ export default function PostEditor({ initial }: Props) {
         </p>
         <Toolbar
           editor={editor}
-          onPickImage={(f) => insertImage(editor, f)}
+          onPickImages={(files) => insertImages(editor, files)}
           onInsertBeforeAfter={() =>
             editor
               ?.chain()
@@ -618,11 +646,11 @@ function IconBtn({
 
 function Toolbar({
   editor,
-  onPickImage,
+  onPickImages,
   onInsertBeforeAfter,
 }: {
   editor: any;
-  onPickImage: (f: File) => void;
+  onPickImages: (files: File[]) => void;
   onInsertBeforeAfter: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -730,11 +758,12 @@ function Toolbar({
         ref={fileRef}
         type="file"
         accept="image/*"
+        multiple
         hidden
         onChange={(e) => {
-          const f = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
           e.target.value = "";
-          if (f) onPickImage(f);
+          if (files.length) onPickImages(files);
         }}
       />
     </div>
